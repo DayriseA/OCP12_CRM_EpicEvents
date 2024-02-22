@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "epic-events-crm"
+version = "0.1.0"
+description = "School project - Simple CRM as CLI"
+authors = ["DayriseA"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+sqlalchemy = "^2.0.27"
+alembic = "^1.13.1"
+click = "^8.1.7"
+rich = "^13.7.0"
+pymysql = "^1.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
