@@ -12,6 +12,8 @@ alembic = "^1.13.1"
 click = "^8.1.7"
 rich = "^13.7.0"
 pymysql = "^1.1.0"
+cryptography = "^42.0.4"
+python-dotenv = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.1"
