@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "epic-events-crm"
+name = "epic_events_crm"
 version = "0.1.0"
 description = "School project - Simple CRM as CLI"
 authors = ["DayriseA"]
