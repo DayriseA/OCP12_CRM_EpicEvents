@@ -1,4 +1,5 @@
 import getpass
+import importlib
 import os
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
@@ -10,7 +11,22 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from epic_events_crm.models.base import Base
+from epic_events_crm.models import Base
+
+WANTED_MODULES = (
+    "epic_events_crm.models.employees",
+    "epic_events_crm.models.departments_permissions",
+    "epic_events_crm.models.clients",
+    "epic_events_crm.models.contracts",
+    "epic_events_crm.models.events",
+)
+
+for module in WANTED_MODULES:
+    try:
+        loaded_module = importlib.import_module(module)
+    except Exception as e:
+        print(f"Could not import module {module}.")
+        print(f"Error: {e}")
 
 load_dotenv()
 
