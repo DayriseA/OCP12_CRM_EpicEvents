@@ -10,6 +10,7 @@ access.
 
 import configparser
 import getpass
+import os
 import sys
 
 import click
@@ -68,9 +69,11 @@ def prompt_for_password(prompt_msg):
             click.echo("Passwords do not match. Please try again.")
 
 
-# get infos from the config file
+# get infos from the config file, regardless of the current working directory
+dir_path = os.path.dirname(os.path.realpath(__file__))
+config_file_path = os.path.join(dir_path, "config.ini")
 config = configparser.ConfigParser()
-config.read("config.ini")
+config.read(config_file_path)
 
 
 @click.command()
@@ -89,7 +92,7 @@ config.read("config.ini")
 @click.option(
     "-p",
     "--port",
-    default=config.get("db-init", "port", fallback=3306),
+    default=int(config.get("db-init", "port", fallback=3306)),
     help="MySQL port. Defaults to 3306.",
 )
 def initialize_database(user, host, port):
@@ -132,13 +135,14 @@ def initialize_database(user, host, port):
     click.echo(f"Key: {key.decode()}")
 
     # if host or port provided as options differ from the config file, update it
-    if host != config.get("db-init", "host", fallback="localhost"):
+    # remind that config.get always returns a string
+    if str(host) != config.get("db-init", "host"):
         config.set("db-init", "host", host)
-    if port != config.get("db-init", "port", fallback=3306):
-        config.set("db-init", "port", port)
+    if str(port) != config.get("db-init", "port"):
+        config.set("db-init", "port", str(port))
     # also update the .env file with the config values for further use
     set_key(".env", "DB_HOST", host)
-    set_key(".env", "DB_PORT", port)
+    set_key(".env", "DB_PORT", str(port))
     set_key(".env", "DB_NAME", db_name)
     set_key(".env", "MIGRATIONS_USER", migrations_username)
     set_key(".env", "APP_USER", app_username)
@@ -146,8 +150,8 @@ def initialize_database(user, host, port):
     # define privileges for the created users, trying to respect the principle
     # of least privilege
     migrations_stmt = (
-        f"GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER ON {db_name}.* TO "
-        f"'{migrations_username}'@'{host}'"
+        f"GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, ALTER, REFERENCES "
+        f"ON {db_name}.* TO '{migrations_username}'@'{host}'"
     )
     app_stmt = (
         f"GRANT SELECT, INSERT, UPDATE, DELETE ON {db_name}.* TO "
