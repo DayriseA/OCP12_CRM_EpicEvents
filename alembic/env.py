@@ -6,8 +6,8 @@ from cryptography.fernet import Fernet
 
 from logging.config import fileConfig
 
-from sqlalchemy import create_engine
-from sqlalchemy import pool
+from sqlalchemy import pool, create_engine
+from sqlalchemy.engine import URL
 
 from alembic import context
 
@@ -110,8 +110,15 @@ def run_migrations_online() -> None:
     fernet = Fernet(key)
     password = fernet.decrypt(encrypted_password.encode()).decode()
 
-    # Create the connection
-    url = f"mysql+pymysql://{db_user}:{password}@{db_host}:{db_port}/{db_name}"
+    # Create connection, URL.create to handle special characters like @ in password
+    url = URL.create(
+        drivername="mysql+pymysql",
+        username=db_user,
+        password=password,
+        host=db_host,
+        port=db_port,
+        database=db_name,
+    )
     connectable = create_engine(url, poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
