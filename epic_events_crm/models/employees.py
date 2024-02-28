@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List
 import datetime
 
+from argon2 import PasswordHasher
 from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -25,10 +26,20 @@ class Employee(Base):
     department_id: Mapped[int] = mapped_column(
         ForeignKey("departments.id"), nullable=False
     )
-    department: Mapped[Department] = relationship(back_populates="employees")
+    department: Mapped["Department"] = relationship(back_populates="employees")
     clients: Mapped[List[Client]] = relationship(back_populates="salesperson")
     events: Mapped[List[Event]] = relationship(back_populates="support_person")
 
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, server_default=func.now()
     )
+
+    def set_password(self, password: str) -> None:
+        """Receive a plaintext password, hash it and set it as password attribute."""
+        ph = PasswordHasher()
+        self.password = ph.hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Receive a plaintext password, hash it and compare it to the stored hash."""
+        ph = PasswordHasher()
+        return ph.verify(self.password, password)
