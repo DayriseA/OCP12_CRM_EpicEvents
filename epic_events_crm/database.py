@@ -8,7 +8,7 @@ from sqlalchemy.engine import URL
 from sqlalchemy.orm import Session
 
 
-def make_db_url():
+def make_db_url() -> URL:
     """Use the .env file to build and return a database URL object."""
     # Load the environment variables from the .env file
     load_dotenv()
@@ -36,14 +36,14 @@ def make_db_url():
     return url
 
 
-def get_session():
+def get_session() -> Session:
     """Return a SQLAlchemy session."""
     engine = create_engine(make_db_url())
     session = Session(engine)
     return session
 
 
-def make_test_db_url():
+def make_test_db_url() -> URL:
     """Use the .env file to build and return the test database URL object."""
     # Load the environment variables from the .env file
     load_dotenv()
@@ -71,14 +71,14 @@ def make_test_db_url():
     return url
 
 
-def get_test_session():
+def get_test_session() -> Session:
     """Return a SQLAlchemy session for testing purposes."""
     engine = create_engine(make_test_db_url())
     session = Session(engine)
     return session
 
 
-def get_state_name(obj):
+def get_state_name(obj) -> str:
     """An utility function to the state of an object."""
     inspector = inspect(obj)
     state_name = "UNKNOWN"

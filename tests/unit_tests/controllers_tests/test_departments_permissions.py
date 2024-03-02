@@ -32,16 +32,17 @@ class TestDepartmentController:
         department = Department(name="Sales_test")
         department_2 = Department(name="Support_test")
         self.controller.add(department)
-        self.controller.add(department_2)
         assert inspect(department).pending
+        self.controller.session.flush()
+        assert inspect(department).persistent
+        self.controller.add(department_2)
         assert inspect(department_2).pending
 
     def test_get_by_name(self):
         """Test that a department is obtained by its name."""
-        department = self.controller.get_by_name("Sales_test")
-        assert department is not None
+        department = self.controller.get_by_name("Support_test")
         assert isinstance(department, Department)
-        assert department.name == "Sales_test"
+        assert department.name == "Support_test"
 
         # as a side effect the query changed the state from pending to persistent
         assert inspect(department).persistent
@@ -49,13 +50,11 @@ class TestDepartmentController:
     def test_get_by_id(self):
         """Test that a department is obtained by its id."""
         department = self.controller.get_by_id(1)
-        assert department is not None
         assert isinstance(department, Department)
 
     def test_get_all(self):
         """Test the method returns all departments as a Department list."""
         departments = self.controller.get_all()
-        assert departments is not None
         assert isinstance(departments, list)
         assert isinstance(departments[0], Department)
 
