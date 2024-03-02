@@ -43,3 +43,7 @@ class Employee(Base):
         """Receive a plaintext password, hash it and compare it to the stored hash."""
         ph = PasswordHasher()
         return ph.verify(self.password, password)
+
+    def __init__(self, password: str, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.set_password(password)
