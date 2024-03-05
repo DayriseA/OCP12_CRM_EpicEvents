@@ -24,7 +24,7 @@ class TestEmployeeModel:
 
     def setup_method(self):
         """Setup for each test method."""
-        self.employee = Employee()
+        self.employee = Employee(password=" ")
 
     def test_set_password(self):
         """Test that the password is hashed and set correctly."""

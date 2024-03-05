@@ -20,7 +20,7 @@ def make_db_url() -> URL:
     if os.getenv("EECRM_KEY"):
         key = os.getenv("EECRM_KEY")
     else:
-        key = getpass.getpass("Enter the key to decrypt the password: ")
+        key = getpass.getpass("Enter the app key to decrypt the password: ")
     encrypted_password = os.getenv("APP_PWD")
     fernet = Fernet(key)
     password = fernet.decrypt(encrypted_password.encode()).decode()
