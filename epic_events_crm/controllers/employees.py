@@ -38,7 +38,7 @@ class EmployeeController:
         except Exception as e:
             print(f"Error getting employee by id: {e}")
 
-    def get_by_email(self, email: str) -> Employee:
+    def get_by_email(self, email: str) -> Optional[Employee]:
         """Return an employee by its email."""
         try:
             return self.session.execute(
