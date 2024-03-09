@@ -80,7 +80,12 @@ key = Fernet.generate_key()
 fernet = Fernet(key)
 
 
-@click.command()
+@click.group()
+def init():
+    pass
+
+
+@init.command(name="db")
 @click.option(
     "-u",
     "--user",
@@ -169,6 +174,7 @@ def initialize_database(user, host, port):
         raise err
 
 
+@init.command(name="jwt-key")
 def set_jwt_secret():
     """Set the JWT_SECRET in the .env file."""
     # Prompt for the JWT secret and encrypt it
@@ -179,5 +185,4 @@ def set_jwt_secret():
 
 
 if __name__ == "__main__":
-    initialize_database()
-    set_jwt_secret()
+    init()
