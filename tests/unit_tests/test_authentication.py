@@ -4,7 +4,11 @@ import pytest
 
 from epic_events_crm.models.employees import Employee
 from epic_events_crm.controllers.employees import EmployeeController
-from epic_events_crm.authentication import authenticate, make_jwt_token
+from epic_events_crm.authentication import (
+    authenticate,
+    make_jwt_token,
+    valid_token_in_env,
+)
 
 
 class TestAuthentication:
@@ -60,3 +64,37 @@ class TestAuthentication:
             - expiration_datetime
         )
         assert time_difference.total_seconds() < 1
+
+    @pytest.mark.parametrize(
+        "token, secret, expected",
+        [
+            ("valid_token", "jwt_test_secret", True),
+            ("valid_token", "invalid_secret", False),
+            ("invalid_token", "jwt_test_secret", False),
+            ("expired_token", "jwt_test_secret", False),
+            (None, "jwt_test_secret", False),
+        ],
+    )
+    def test_valid_token_in_env(self, mocker, token, secret, expected):
+        """Test the valid_token_in_env function."""
+        # Mock os.getenv and get_jwt_secret
+        mocker.patch("os.getenv", return_value=token)
+        mocker.patch(
+            "epic_events_crm.authentication.get_jwt_secret", return_value=secret
+        )
+
+        # Mock jwt.decode
+        def mock_decode(token, secret, algorithms):
+            if token == "valid_token" and secret == "jwt_test_secret":
+                return True
+            elif token == "valid_token" and secret == "invalid_secret":
+                raise jwt.InvalidSignatureError
+            elif token == "invalid_token":
+                raise jwt.InvalidTokenError
+            elif token == "expired_token":
+                raise jwt.ExpiredSignatureError
+
+        mocker.patch("jwt.decode", side_effect=mock_decode)
+
+        result = valid_token_in_env()
+        assert result == expected

@@ -1,7 +1,7 @@
 import datetime
 import os
 import jwt
-from dotenv import load_dotenv
+from dotenv import load_dotenv, set_key
 from cryptography.fernet import Fernet
 from typing import TYPE_CHECKING
 
@@ -50,7 +50,7 @@ def make_jwt_token(employee: "Employee") -> str:
     return token
 
 
-def log_in(email: str, password: str, controller=controller) -> None:
+def log_in(email: str, password: str, controller=controller) -> bool:
     """
     After being authenticated, log in an employee. A JWT token is created and
     stored in an environment variable.
@@ -58,4 +58,25 @@ def log_in(email: str, password: str, controller=controller) -> None:
     if authenticate(email, password, controller=controller):
         employee = controller.get_by_email(email)
         token = make_jwt_token(employee)
-        os.environ["JWT_TOKEN"] = token
+        set_key(".env", "JWT_TOKEN", token)
+        return True
+    return False
+
+
+def valid_token_in_env() -> bool:
+    """Check if a valid JWT token is stored in the environments variables."""
+    load_dotenv()
+    token = os.getenv("JWT_TOKEN")
+    if token is not None:
+        jwt_secret = get_jwt_secret()
+        try:
+            jwt.decode(token, jwt_secret, algorithms=["HS256"])
+            return True
+        except jwt.ExpiredSignatureError:
+            print("The token has expired.")
+        except jwt.InvalidSignatureError:
+            print("The token signature is invalid.")
+        except jwt.InvalidTokenError:
+            print("The token is invalid.")
+
+    return False
