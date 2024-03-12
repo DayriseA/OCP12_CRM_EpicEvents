@@ -4,7 +4,8 @@ import getpass
 class BaseView:
     """Basic views for the CRM app."""
 
-    def display_msg(self, msg: str) -> None:
+    @staticmethod
+    def display_msg(msg: str) -> None:
         """Display a message."""
         # to be changed later with use of click and rich
         print(msg)

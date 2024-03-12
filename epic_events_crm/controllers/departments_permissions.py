@@ -15,4 +15,10 @@ class DepartmentController:
             self.session = get_session()
         self.repo = DepartmentRepo(self.session)
 
-    pass
+    def display_all(self) -> str:
+        """List all departments and their id."""
+        departments = self.repo.get_all()
+        msg = "Availables departments:\n"
+        for department in departments:
+            msg += f"{department.name.upper()} (id:{department.id})\n"
+        return msg
