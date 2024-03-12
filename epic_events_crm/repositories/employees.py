@@ -43,7 +43,7 @@ class EmployeeRepo:
         try:
             return self.session.execute(
                 select(Employee).filter_by(email=email)
-            ).scalar_one()
+            ).scalar_one_or_none()
         except Exception as e:
             print(f"Error getting employee by email: {e}")
 

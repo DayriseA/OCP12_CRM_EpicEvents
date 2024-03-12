@@ -47,3 +47,6 @@ class Employee(Base):
     def __init__(self, password: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self.set_password(password)
+
+    def __repr__(self) -> str:
+        return f"<Employee {self.fname} {self.lname} ({self.email})>"
