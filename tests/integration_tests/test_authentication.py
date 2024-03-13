@@ -5,7 +5,7 @@ import jwt
 from sqlalchemy import inspect
 
 from epic_events_crm.models.employees import Employee
-from epic_events_crm.controllers.employees import EmployeeController
+from epic_events_crm.repositories.employees import EmployeeRepo
 from epic_events_crm.authentication import authenticate, make_jwt_token
 
 NEEDED_MODULES = (
@@ -27,7 +27,7 @@ class TestAuthentication:
 
     @pytest.fixture(autouse=True)
     def setup_class(self, session):
-        self.controller = EmployeeController(session)
+        self.controller = EmployeeRepo(session)
         self.employee = Employee(
             fname="John",
             lname="Doe",
@@ -54,6 +54,6 @@ class TestAuthentication:
         token = make_jwt_token(self.employee)
         decoded_token = jwt.decode(token, fixed_secret, algorithms=["HS256"])
         assert decoded_token["uid"] == self.employee.id
-        assert decoded_token["hash"] == self.employee.password
+        assert decoded_token["department_id"] == self.employee.department_id
         os.environ["JWT_TEST_TOKEN"] = token
         assert os.getenv("JWT_TEST_TOKEN") == token
