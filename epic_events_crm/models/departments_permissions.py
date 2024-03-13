@@ -27,6 +27,9 @@ class Department(Base):
         secondary=department_permission, back_populates="departments"
     )
 
+    def __repr__(self):
+        return f"<Department(name={self.name} id={self.id})>"
+
 
 class Permission(Base):
     __tablename__ = "permissions"
@@ -36,3 +39,6 @@ class Permission(Base):
     departments: Mapped[List[Department]] = relationship(
         secondary=department_permission, back_populates="permissions"
     )
+
+    def __repr__(self):
+        return f"<Permission(name={self.name} id={self.id})>"
