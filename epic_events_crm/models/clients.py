@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 import datetime
 
 from sqlalchemy import String, ForeignKey, DateTime, text
@@ -18,11 +18,11 @@ class Client(Base):
     __tablename__ = "clients"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    fname: Mapped[str] = mapped_column(String(50))
-    lname: Mapped[str] = mapped_column(String(50))
+    fname: Mapped[str] = mapped_column(String(50), nullable=False)
+    lname: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
-    phone: Mapped[str] = mapped_column(String(20), unique=True)
-    company_name: Mapped[str] = mapped_column(String(255))
+    phone: Mapped[Optional[str]] = mapped_column(String(20), unique=True)
+    company_name: Mapped[Optional[str]] = mapped_column(String(255))
     salesperson_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))
     salesperson: Mapped[Employee] = relationship(back_populates="clients")
     contracts: Mapped[List[Contract]] = relationship(back_populates="client")
