@@ -1,7 +1,5 @@
 import importlib
-import pytest
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
 
 from epic_events_crm.models.employees import Employee
 
@@ -47,5 +45,4 @@ class TestEmployeeModel:
     def test_check_password_wrong_password(self):
         """Test that False is returned when the password is wrong."""
         self.employee.set_password("azerty-123")
-        with pytest.raises(VerifyMismatchError):
-            self.employee.check_password("wrong-password")
+        assert self.employee.check_password("wrong-password") is False

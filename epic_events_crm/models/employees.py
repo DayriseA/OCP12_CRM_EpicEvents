@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, List
 import datetime
 
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
@@ -42,7 +43,10 @@ class Employee(Base):
     def check_password(self, password: str) -> bool:
         """Receive a plaintext password, hash it and compare it to the stored hash."""
         ph = PasswordHasher()
-        return ph.verify(self.password, password)
+        try:
+            return ph.verify(self.password, password)
+        except VerifyMismatchError:
+            return False
 
     def __init__(self, password: str, **kwargs) -> None:
         super().__init__(**kwargs)

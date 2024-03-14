@@ -3,13 +3,12 @@ import os
 import jwt
 from dotenv import load_dotenv, set_key
 from cryptography.fernet import Fernet
-from typing import TYPE_CHECKING, Union
+from typing import Union, Optional
 
+from epic_events_crm.models.employees import Employee
 from epic_events_crm.repositories.employees import EmployeeRepo
 from epic_events_crm.views.base import BaseView
 
-if TYPE_CHECKING:
-    from epic_events_crm.models.employees import Employee
 
 base_view = BaseView()
 controller = EmployeeRepo()
@@ -86,3 +85,11 @@ def valid_token_in_env() -> Union[bool, dict]:
             print("The token is invalid.")
             return False
     return False
+
+
+def get_current_user() -> Optional[Employee]:
+    """Return the current user from the JWT token."""
+    token = valid_token_in_env()
+    if token:
+        return controller.get_by_id(token["uid"])
+    return None
