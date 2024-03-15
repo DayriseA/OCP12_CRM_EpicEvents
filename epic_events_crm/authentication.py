@@ -93,3 +93,17 @@ def get_current_user() -> Optional[Employee]:
     if token:
         return controller.get_by_id(token["uid"])
     return None
+
+
+def requires_auth(f):
+    """Decorator for requiring authentication."""
+
+    def wrapper(*args, **kwargs):
+        try:
+            valid_token = valid_token_in_env()
+        except Exception as e:
+            print(f"Error: {e}")
+        if valid_token:
+            return f(*args, **kwargs)
+
+    return wrapper

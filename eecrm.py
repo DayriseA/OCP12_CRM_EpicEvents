@@ -1,7 +1,8 @@
 import importlib
 import click
 
-from epic_events_crm.authentication import log_in
+from epic_events_crm.authentication import log_in, requires_auth
+from epic_events_crm.permissions import requires_permissions
 from epic_events_crm.controllers.employees import EmployeeController
 
 NEEDED_MODULES = (
@@ -40,6 +41,8 @@ def login(email, password):
 @click.argument("email")
 @click.argument("department_id", type=int)
 @click.password_option("--password", "-p")
+@requires_auth
+@requires_permissions(["create_employee"])
 def create_employee(
     firstname: str, lastname: str, email: str, department_id: int, password: str
 ) -> None:
@@ -56,7 +59,7 @@ def create_employee(
             password=password,
             department_id=department_id,
         )
-        click.echo(f"{firstname} {lastname} ({email}) created.")
+        click.echo(f"Employee {firstname} {lastname} ({email}) created.")
     except Exception as e:
         click.echo(f"Error: {e}")
 
@@ -67,6 +70,8 @@ def create_employee(
 @click.option("--fname", "-fn", help="New first name.")
 @click.option("--lname", "-ln", help="New last name.")
 @click.option("--did", "-d", type=int, help="New department id.")
+@requires_auth
+@requires_permissions(["update_employee"])
 def update_employee(eid, email, fname, lname, did):
     """
     Update an employee's details. Employee is identified by id or email.
@@ -85,6 +90,8 @@ def update_employee(eid, email, fname, lname, did):
 @eecrm.command(name="delete-emp", short_help="Delete an employee.")
 @click.option("--eid", "-id", type=int, help="Employee id.")
 @click.option("--email", "-e", help="Employee email.")
+@requires_auth
+@requires_permissions(["delete_employee"])
 def delete_employee(eid, email):
     """Delete an employee. Employee is identified by id or email."""
     employee_controller = EmployeeController()
