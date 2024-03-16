@@ -229,13 +229,14 @@ def create_contract(client_id: int, due_amount: float) -> None:
 @click.option("--amount", "-a", type=float, help="New total amount.")
 @click.option("--paid", "-p", type=float, help="Amount paid.")
 @click.option("--signed", "-s", type=bool, help="Signed status.")
+@click.option("--clientmail", "-c", help="Client email.")
 @requires_auth
 @requires_permissions(["update_contract"])
-def update_contract(contract_id, amount, paid, signed):
+def update_contract(contract_id, amount, paid, signed, clientmail):
     """Update a contract's details."""
     contract_controller = ContractController()
     try:
-        contract_controller.update(contract_id, amount, paid, signed)
+        contract_controller.update(contract_id, amount, paid, signed, clientmail)
         click.echo("Contract updated.")
     except Exception as e:
         click.echo(f"Error: {e}")

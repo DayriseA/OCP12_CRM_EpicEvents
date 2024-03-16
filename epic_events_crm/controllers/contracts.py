@@ -40,6 +40,7 @@ class ContractController:
         total_amount: Optional[float],
         paid_amount: Optional[float],
         signed: Optional[bool],
+        client_email: Optional[str],
     ) -> None:
         """Update a contract's details."""
         contract = self.repo.get_by_id(contract_id)
@@ -58,6 +59,18 @@ class ContractController:
         # Update signed status
         if signed is not None:
             contract.signed = signed
+
+        if client_email is not None:
+            # Check if client exists
+            from epic_events_crm.repositories.clients import ClientRepo
+
+            client_repo = ClientRepo(self.session)
+            client = client_repo.get_by_email(client_email)
+            if client is None:
+                raise ValueError("Client not found.")
+            old_client = contract.client
+            contract.client_id = client.id
+            print(f"Trying to change client from {old_client} to {client}")
 
         # If due amount is negative, inform user
         if contract.due_amount < 0:
