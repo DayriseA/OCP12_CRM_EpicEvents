@@ -1,5 +1,6 @@
 from typing import Optional
 from sqlalchemy import exc
+from pymysql.err import IntegrityError
 
 from epic_events_crm.utilities import is_email_valid
 from epic_events_crm.database import get_session
@@ -105,4 +106,9 @@ class EmployeeController:
         try:
             self.session.commit()
         except exc.SQLAlchemyError as e:
+            # Specific error for employee still assigned to a client
+            msg = "'salesperson_id' cannot be null"
+            if isinstance(e.orig, IntegrityError) and msg in e.orig.args[1]:
+
+                raise exc.SQLAlchemyError("Employee still assigned to a client.")
             raise exc.SQLAlchemyError(f"Error trying to commit deletion: {e}")
