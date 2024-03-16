@@ -36,3 +36,6 @@ class Client(Base):
         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
         server_onupdate=FetchedValue(),
     )
+
+    def __repr__(self) -> str:
+        return f"<Client {self.fname} {self.lname} ({self.email})>"

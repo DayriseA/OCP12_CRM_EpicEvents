@@ -2,6 +2,7 @@ from typing import List, Optional
 from sqlalchemy import select
 
 from epic_events_crm.database import get_session
+from epic_events_crm.utilities import remove_spaces_and_hyphens
 from epic_events_crm.models.clients import Client
 
 
@@ -43,9 +44,19 @@ class ClientRepo:
         try:
             return self.session.execute(
                 select(Client).filter_by(email=email)
-            ).scalar_one()
+            ).scalar_one_or_none()
         except Exception as e:
             print(f"Error getting client by email: {e}")
+
+    def get_by_phone(self, phone: str) -> Optional[Client]:
+        """Return a client by its phone."""
+        phone = remove_spaces_and_hyphens(phone)
+        try:
+            return self.session.execute(
+                select(Client).filter_by(phone=phone)
+            ).scalar_one_or_none()
+        except Exception as e:
+            print(f"Error getting client by phone: {e}")
 
     def delete(self, client: Client) -> None:
         """Mark a client for deletion in the session."""
