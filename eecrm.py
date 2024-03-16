@@ -5,6 +5,7 @@ from epic_events_crm.authentication import log_in, requires_auth, get_current_us
 from epic_events_crm.permissions import requires_permissions
 from epic_events_crm.controllers.employees import EmployeeController
 from epic_events_crm.controllers.clients import ClientController
+from epic_events_crm.controllers.contracts import ContractController
 
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
@@ -206,6 +207,38 @@ def delete_client(clientid, email):
                 click.echo("Client successfully deleted.")
             except Exception as e:
                 click.echo(f"Error: {e}")
+
+
+@eecrm.command(name="add-contract", short_help="Add a contract.")
+@click.argument("client_id", type=int)
+@click.argument("due_amount", type=float)
+@requires_auth
+@requires_permissions(["create_contract"])
+def create_contract(client_id: int, due_amount: float) -> None:
+    """Create a contract and add it to the database."""
+    contract_controller = ContractController()
+    try:
+        contract_controller.create(client_id, due_amount)
+        click.echo("Contract created.")
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@eecrm.command(name="update-contract", short_help="Update a contract.")
+@click.argument("contract_id", type=int)
+@click.option("--amount", "-a", type=float, help="New total amount.")
+@click.option("--paid", "-p", type=float, help="Amount paid.")
+@click.option("--signed", "-s", type=bool, help="Signed status.")
+@requires_auth
+@requires_permissions(["update_contract"])
+def update_contract(contract_id, amount, paid, signed):
+    """Update a contract's details."""
+    contract_controller = ContractController()
+    try:
+        contract_controller.update(contract_id, amount, paid, signed)
+        click.echo("Contract updated.")
+    except Exception as e:
+        click.echo(f"Error: {e}")
 
 
 if __name__ == "__main__":
