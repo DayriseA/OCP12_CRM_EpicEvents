@@ -132,3 +132,6 @@ class ClientController:
             self.session.commit()
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
+
+    def get_all(self):
+        return self.repo.get_all()

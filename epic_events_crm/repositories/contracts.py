@@ -1,4 +1,5 @@
 from typing import Optional
+from sqlalchemy import select
 
 from epic_events_crm.database import get_session
 from epic_events_crm.models.contracts import Contract
@@ -36,3 +37,10 @@ class ContractRepo:
             self.session.delete(contract)
         except Exception as e:
             print(f"Error deleting contract: {e}")
+
+    def get_all(self):
+        """Return all contracts."""
+        try:
+            return self.session.execute(select(Contract)).scalars().all()
+        except Exception as e:
+            print(f"Error getting all contracts: {e}")

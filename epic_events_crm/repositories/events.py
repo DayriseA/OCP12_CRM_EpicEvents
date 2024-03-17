@@ -1,4 +1,5 @@
 from typing import Optional
+from sqlalchemy import select
 
 from epic_events_crm.database import get_session
 from epic_events_crm.models.events import Event
@@ -36,3 +37,10 @@ class EventRepo:
             self.session.delete(event)
         except Exception as e:
             print(f"Error deleting event: {e}")
+
+    def get_all(self) -> Optional[list]:
+        """Return all events."""
+        try:
+            return self.session.execute(select(Event)).scalars().all()
+        except Exception as e:
+            print(f"Error getting all events: {e}")

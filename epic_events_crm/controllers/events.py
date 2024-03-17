@@ -149,3 +149,7 @@ class EventController:
             self.session.commit()
         except Exception as e:
             raise ValueError(f"Error: {e}")
+
+    def get_all(self):
+        """Return a list of all events."""
+        return self.repo.get_all()

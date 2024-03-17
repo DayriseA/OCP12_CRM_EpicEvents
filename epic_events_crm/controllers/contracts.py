@@ -79,3 +79,7 @@ class ContractController:
             self.session.commit()
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
+
+    def get_all(self):
+        """Return a list of all contracts."""
+        return self.repo.get_all()

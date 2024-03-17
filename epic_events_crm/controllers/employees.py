@@ -112,3 +112,7 @@ class EmployeeController:
 
                 raise exc.SQLAlchemyError("Employee still assigned to a client.")
             raise exc.SQLAlchemyError(f"Error trying to commit deletion: {e}")
+
+    def get_all(self):
+        """Return all employees."""
+        return self.repo.get_all()
