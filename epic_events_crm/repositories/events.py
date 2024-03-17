@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import select
 
 from epic_events_crm.database import get_session
@@ -38,9 +38,22 @@ class EventRepo:
         except Exception as e:
             print(f"Error deleting event: {e}")
 
-    def get_all(self) -> Optional[list]:
+    def get_all(self) -> Optional[List[Event]]:
         """Return all events."""
         try:
             return self.session.execute(select(Event)).scalars().all()
         except Exception as e:
             print(f"Error getting all events: {e}")
+
+    def get_events_without_support(self) -> Optional[List[Event]]:
+        """Return all events without a support person assigned."""
+        try:
+            return (
+                self.session.execute(
+                    select(Event).filter(Event.support_person_id.is_(None))
+                )
+                .scalars()
+                .all()
+            )
+        except Exception as e:
+            print(f"Error getting events without support: {e}")

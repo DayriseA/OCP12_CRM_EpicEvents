@@ -373,14 +373,22 @@ def update_event(
 
 
 @eecrm.command(name="list-events", short_help="List events.")
+@click.option("--nosupport", "-ns", is_flag=True, help="List events without support.")
 @requires_auth
-def list_events():
+def list_events(nosupport):
     """List all events."""
-    try:
-        events = controller.events.repo.get_all()
-        view.event.display_events(events)
-    except Exception as e:
-        click.echo(f"Error: {e}")
+    if nosupport:
+        try:
+            events = controller.events.get_events_without_support()
+            view.event.display_events(events)
+        except Exception as e:
+            click.echo(f"Error: {e}")
+    else:
+        try:
+            events = controller.events.get_all()
+            view.event.display_events(events)
+        except Exception as e:
+            click.echo(f"Error: {e}")
 
 
 if __name__ == "__main__":

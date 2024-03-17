@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 from epic_events_crm.database import get_session
@@ -150,6 +150,10 @@ class EventController:
         except Exception as e:
             raise ValueError(f"Error: {e}")
 
-    def get_all(self):
+    def get_all(self) -> Optional[List[Event]]:
         """Return a list of all events."""
         return self.repo.get_all()
+
+    def get_events_without_support(self) -> Optional[List[Event]]:
+        """Return a list of all events without a support person."""
+        return self.repo.get_events_without_support()
