@@ -6,6 +6,7 @@ from epic_events_crm.permissions import requires_permissions
 from epic_events_crm.controllers.employees import EmployeeController
 from epic_events_crm.controllers.clients import ClientController
 from epic_events_crm.controllers.contracts import ContractController
+from epic_events_crm.controllers.events import EventController
 
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
@@ -37,6 +38,7 @@ def login(email, password):
         click.echo("Invalid credentials.")
 
 
+# ############### EMPLOYEES ###############
 @eecrm.command(name="add-emp", short_help="Add an employee.")
 @click.argument("firstname")
 @click.argument("lastname")
@@ -119,6 +121,7 @@ def delete_employee(empid, email):
                 click.echo(f"Error: {e}")
 
 
+# ############### CLIENTS ###############
 @eecrm.command(name="add-client", short_help="Add a client.")
 @click.argument("firstname")
 @click.argument("lastname")
@@ -209,6 +212,7 @@ def delete_client(clientid, email):
                 click.echo(f"Error: {e}")
 
 
+# ############### CONTRACTS ###############
 @eecrm.command(name="add-contract", short_help="Add a contract.")
 @click.argument("client_id", type=int)
 @click.argument("due_amount", type=float)
@@ -238,6 +242,68 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
     try:
         contract_controller.update(contract_id, amount, paid, signed, clientmail)
         click.echo("Contract updated.")
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+# # ############### EVENTS ###############
+@eecrm.command(name="add-event", short_help="Add an event. Answer prompts.")
+@click.argument("contract_id", type=int)
+@click.argument("event_name")
+@click.option(
+    "--start",
+    "-s",
+    help="Start date and time (YYYY-MM-DD HH:MM)",
+    prompt="Start date and time (YYYY-MM-DD HH:MM)",
+)
+@click.option(
+    "--end",
+    "-e",
+    help="End date and time (YYYY-MM-DD HH:MM)",
+    prompt="End date and time (YYYY-MM-DD HH:MM)",
+)
+@click.option("--address", "-a", help="Address line.", prompt="Address line")
+@click.option("--city", "-c", help="City.", prompt="City")
+@click.option("--country", "-C", help="Country.", prompt="Country")
+@click.option("--postal", "-p", help="Postal code.", prompt="Postal code")
+@click.option(
+    "--attendees",
+    "-n",
+    type=int,
+    help="Number of attendees.",
+    prompt="Number of attendees",
+)
+@click.option("--notes", "-txt", help="Notes.")
+@requires_auth
+@requires_permissions(["create_event"])
+def create_event(
+    contract_id: int,
+    event_name: str,
+    start: str,
+    end: str,
+    address: str,
+    city: str,
+    country: str,
+    postal: str,
+    attendees: int,
+    notes: str,
+) -> None:
+    """Create an event and add it to the database."""
+    event_controller = EventController()
+    try:
+        event_controller.create(
+            name=event_name,
+            start_date=start,
+            end_date=end,
+            address_line=address,
+            city=city,
+            country=country,
+            postal_code=postal,
+            attendees_number=attendees,
+            contract_id=contract_id,
+            notes=notes,
+        )
+        click.echo("Event created.")
     except Exception as e:
         click.echo(f"Error: {e}")
 
