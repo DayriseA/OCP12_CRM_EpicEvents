@@ -4,6 +4,7 @@ import click
 from epic_events_crm.authentication import log_in, requires_auth, get_current_user
 from epic_events_crm.permissions import requires_permissions
 from epic_events_crm.controllers.main import MainController
+from epic_events_crm.views.main import MainView
 
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
@@ -20,6 +21,7 @@ for module in NEEDED_MODULES:
         print(f"Error: {e}")
 
 controller = MainController()
+view = MainView()
 
 
 @click.group()
@@ -205,6 +207,17 @@ def delete_client(clientid, email):
                 click.echo(f"Error: {e}")
 
 
+@eecrm.command(name="list-clients", short_help="List clients.")
+@requires_auth
+def list_clients():
+    """List all clients."""
+    try:
+        clients = controller.clients.repo.get_all()
+        view.client.display_clients(clients)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
 # ############### CONTRACTS ###############
 @eecrm.command(name="add-contract", short_help="Add a contract.")
 @click.argument("client_id", type=int)
@@ -233,6 +246,17 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
     try:
         controller.contracts.update(contract_id, amount, paid, signed, clientmail)
         click.echo("Contract updated.")
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@eecrm.command(name="list-contracts", short_help="List contracts.")
+@requires_auth
+def list_contracts():
+    """List all contracts."""
+    try:
+        contracts = controller.contracts.repo.get_all()
+        view.contract.display_contracts(contracts)
     except Exception as e:
         click.echo(f"Error: {e}")
 
@@ -344,6 +368,17 @@ def update_event(
             support_person_id=support_id,
         )
         click.echo("Event updated.")
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@eecrm.command(name="list-events", short_help="List events.")
+@requires_auth
+def list_events():
+    """List all events."""
+    try:
+        events = controller.events.repo.get_all()
+        view.event.display_events(events)
     except Exception as e:
         click.echo(f"Error: {e}")
 

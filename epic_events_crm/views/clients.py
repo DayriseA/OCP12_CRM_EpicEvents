@@ -33,9 +33,10 @@ class ClientView:
         table.add_column("Email")
         table.add_column("Phone")
         table.add_column("Company Name")
-        table.add_column("Salesperson ID", width=5)
+        table.add_column("Sales person (ID)")
         # Add rows to the table
         for client in clients:
+            salesperson_info = f"{client.salesperson.email} ({client.salesperson.id})"
             table.add_row(
                 str(client.id),
                 client.fname,
@@ -43,7 +44,7 @@ class ClientView:
                 client.email,
                 client.phone,
                 client.company_name,
-                str(client.salesperson_id),
+                salesperson_info,
             )
 
         self.console.print(table)
