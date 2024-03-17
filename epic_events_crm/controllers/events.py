@@ -156,4 +156,11 @@ class EventController:
 
     def get_events_without_support(self) -> Optional[List[Event]]:
         """Return a list of all events without a support person."""
-        return self.repo.get_events_without_support()
+        return self.repo.get_events_assigned_to()
+
+    def get_events_assigned_to_current_user(self) -> Optional[List[Event]]:
+        """Return a list of all events assigned to the current user."""
+        from epic_events_crm.authentication import get_current_user
+
+        current_user = get_current_user()
+        return self.repo.get_events_assigned_to(current_user.id)

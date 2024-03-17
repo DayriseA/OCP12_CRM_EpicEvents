@@ -45,15 +45,18 @@ class EventRepo:
         except Exception as e:
             print(f"Error getting all events: {e}")
 
-    def get_events_without_support(self) -> Optional[List[Event]]:
-        """Return all events without a support person assigned."""
+    def get_events_assigned_to(self, support_person_id=None) -> Optional[List[Event]]:
+        """
+        Return all events assigned to a specified (by id) support person.
+        If no id is provided, return all events without a support person.
+        """
         try:
             return (
                 self.session.execute(
-                    select(Event).filter(Event.support_person_id.is_(None))
+                    select(Event).filter(Event.support_person_id == support_person_id)
                 )
                 .scalars()
                 .all()
             )
         except Exception as e:
-            print(f"Error getting events without support: {e}")
+            print(f"Error: {e}")
