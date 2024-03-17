@@ -26,9 +26,13 @@ class ClientRepo:
             print(f"Error adding client: {e}")
 
     def get_all(self) -> List[Client]:
-        """Return all clients as a list."""
+        """Return all clients as a list, ordered by company name."""
         try:
-            return self.session.execute(select(Client)).scalars().all()
+            return (
+                self.session.execute(select(Client).order_by(Client.company_name))
+                .scalars()
+                .all()
+            )
         except Exception as e:
             print(f"Error getting all clients: {e}")
 
@@ -64,3 +68,19 @@ class ClientRepo:
             self.session.delete(client)
         except Exception as e:
             print(f"Error deleting client: {e}")
+
+    def get_clients_assigned_to(self, salesperson_id=None) -> List[Client]:
+        """
+        Return all clients assigned to a specified (by id) salesperson.
+        If no id is provided, return all clients without a salesperson.
+        """
+        try:
+            return (
+                self.session.execute(
+                    select(Client).filter(Client.salesperson_id == salesperson_id)
+                )
+                .scalars()
+                .all()
+            )
+        except Exception as e:
+            print(f"Error: {e}")

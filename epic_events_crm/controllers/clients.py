@@ -135,3 +135,10 @@ class ClientController:
 
     def get_all(self):
         return self.repo.get_all()
+
+    def get_clients_assigned_to_current_user(self):
+        """Return a list of all clients assigned to the current user."""
+        from epic_events_crm.authentication import get_current_user
+
+        current_user = get_current_user()
+        return self.repo.get_clients_assigned_to(current_user.id)

@@ -208,14 +208,22 @@ def delete_client(clientid, email):
 
 
 @eecrm.command(name="list-clients", short_help="List clients.")
+@click.option("--mine", "-m", is_flag=True, help="Clients assigned to current user.")
 @requires_auth
-def list_clients():
-    """List all clients."""
-    try:
-        clients = controller.clients.repo.get_all()
-        view.client.display_clients(clients)
-    except Exception as e:
-        click.echo(f"Error: {e}")
+def list_clients(mine):
+    """List clients. With --mine, list clients assigned to current user."""
+    if mine:
+        try:
+            clients = controller.clients.get_clients_assigned_to_current_user()
+            view.client.display_clients(clients)
+        except Exception as e:
+            click.echo(f"Error: {e}")
+    else:
+        try:
+            clients = controller.clients.repo.get_all()
+            view.client.display_clients(clients)
+        except Exception as e:
+            click.echo(f"Error: {e}")
 
 
 # ############### CONTRACTS ###############
@@ -379,7 +387,10 @@ def update_event(
 )
 @requires_auth
 def list_events(nosupport, mine):
-    """List all events."""
+    """
+    List events. With --nosupport, list events without support person.
+    With --mine, list events assigned to current user.
+    """
     if nosupport:
         try:
             events = controller.events.get_events_without_support()
