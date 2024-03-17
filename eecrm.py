@@ -39,16 +39,16 @@ def login(email, password):
 
 
 # ############### EMPLOYEES ###############
-@eecrm.command(name="add-emp", short_help="Add an employee.")
-@click.argument("firstname")
-@click.argument("lastname")
-@click.argument("email")
-@click.argument("department_id", type=int)
+@eecrm.command(name="add-emp", short_help="Add employee. Options are prompts friendly.")
+@click.option("--fname", "-fn", help="First name.", prompt="First name")
+@click.option("--lname", "-ln", help="Last name.", prompt="Last name")
+@click.option("--email", "-e", help="Email.", prompt="Email")
+@click.option("--did", "-d", type=int, help="Department id.", prompt="Department id")
 @click.password_option("--password", "-p")
 @requires_auth
 @requires_permissions(["create_employee"])
 def create_employee(
-    firstname: str, lastname: str, email: str, department_id: int, password: str
+    fname: str, lname: str, email: str, did: int, password: str
 ) -> None:
     """
     Create an employee and add it to the database. Do not use the --password option if
@@ -57,13 +57,13 @@ def create_employee(
     employee_controller = EmployeeController()
     try:
         employee_controller.create(
-            fname=firstname,
-            lname=lastname,
+            fname=fname,
+            lname=lname,
             email=email,
             password=password,
-            department_id=department_id,
+            department_id=did,
         )
-        click.echo(f"Employee {firstname} {lastname} ({email}) created.")
+        click.echo(f"Employee {fname} {lname} ({email}) created.")
     except Exception as e:
         click.echo(f"Error: {e}")
 
@@ -247,7 +247,7 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
 
 
 # # ############### EVENTS ###############
-@eecrm.command(name="add-event", short_help="Add an event. Answer prompts.")
+@eecrm.command(name="add-event", short_help="Add event. Options are prompts friendly.")
 @click.argument("contract_id", type=int)
 @click.argument("event_name")
 @click.option(
