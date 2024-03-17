@@ -268,7 +268,7 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
 @click.option("--postal", "-p", help="Postal code.", prompt="Postal code")
 @click.option(
     "--attendees",
-    "-n",
+    "-nb",
     type=int,
     help="Number of attendees.",
     prompt="Number of attendees",
@@ -304,6 +304,57 @@ def create_event(
             notes=notes,
         )
         click.echo("Event created.")
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@eecrm.command(name="update-event", short_help="Update an event.")
+@click.argument("event_id", type=int)
+@click.option("--name", "-n", help="New event name.")
+@click.option("--start", "-s", help="New start date and time (YYYY-MM-DD HH:MM).")
+@click.option("--end", "-e", help="New end date and time (YYYY-MM-DD HH:MM).")
+@click.option("--address", "-a", help="New address line.")
+@click.option("--city", "-c", help="New city.")
+@click.option("--country", "-C", help="New country.")
+@click.option("--postal", "-p", help="New postal code.")
+@click.option("--attendees", "-nb", type=int, help="New number of attendees.")
+@click.option("--notes", "-txt", help="New notes.")
+@click.option("--append", "-ap", is_flag=True, help="Append notes.")
+@click.option("--support_id", "-sid", type=int, help="Support person id.")
+@requires_auth
+@requires_permissions(["update_event"])
+def update_event(
+    event_id: int,
+    name: str,
+    start: str,
+    end: str,
+    address: str,
+    city: str,
+    country: str,
+    postal: str,
+    attendees: int,
+    notes: str,
+    append: bool,
+    support_id: int,
+) -> None:
+    """Update an event's details."""
+    event_controller = EventController()
+    try:
+        event_controller.update(
+            event_id=event_id,
+            name=name,
+            start_date=start,
+            end_date=end,
+            address_line=address,
+            city=city,
+            country=country,
+            postal_code=postal,
+            attendees_number=attendees,
+            notes=notes,
+            append=append,
+            support_person_id=support_id,
+        )
+        click.echo("Event updated.")
     except Exception as e:
         click.echo(f"Error: {e}")
 
