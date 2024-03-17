@@ -3,10 +3,7 @@ import click
 
 from epic_events_crm.authentication import log_in, requires_auth, get_current_user
 from epic_events_crm.permissions import requires_permissions
-from epic_events_crm.controllers.employees import EmployeeController
-from epic_events_crm.controllers.clients import ClientController
-from epic_events_crm.controllers.contracts import ContractController
-from epic_events_crm.controllers.events import EventController
+from epic_events_crm.controllers.main import MainController
 
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
@@ -21,6 +18,8 @@ for module in NEEDED_MODULES:
     except Exception as e:
         print(f"Could not import module {module}.")
         print(f"Error: {e}")
+
+controller = MainController()
 
 
 @click.group()
@@ -54,9 +53,8 @@ def create_employee(
     Create an employee and add it to the database. Do not use the --password option if
     you don't want it to be visible in the terminal, it will prompt for it.
     """
-    employee_controller = EmployeeController()
     try:
-        employee_controller.create(
+        controller.employees.create(
             fname=fname,
             lname=lname,
             email=email,
@@ -81,9 +79,8 @@ def update_employee(empid, email, fname, lname, did):
     Update an employee's details. Employee is identified by id or email.
     id takes precedence over email if both are provided and is needed to update email.
     """
-    employee_controller = EmployeeController()
     try:
-        employee_controller.update(
+        controller.employees.update(
             employee_id=empid, email=email, fname=fname, lname=lname, department_id=did
         )
         click.echo("Employee updated.")
@@ -98,12 +95,11 @@ def update_employee(empid, email, fname, lname, did):
 @requires_permissions(["delete_employee"])
 def delete_employee(empid, email):
     """Delete an employee. Employee is identified by id or email."""
-    employee_controller = EmployeeController()
     # Get employee by id or email
     if empid is not None:
-        employee = employee_controller.repo.get_by_id(empid)
+        employee = controller.employees.repo.get_by_id(empid)
     elif email is not None:
-        employee = employee_controller.repo.get_by_email(email)
+        employee = controller.employees.repo.get_by_email(email)
     else:
         click.echo("Provide either id or email.")
         return
@@ -115,7 +111,7 @@ def delete_employee(empid, email):
     else:
         if click.confirm(f"Please confirm deletion of {employee}", abort=True):
             try:
-                employee_controller.delete(employee)
+                controller.employees.delete(employee)
                 click.echo("Employee successfully deleted.")
             except Exception as e:
                 click.echo(f"Error: {e}")
@@ -135,10 +131,9 @@ def create_client(firstname: str, lastname: str, email: str, phone: str, company
     Create a client and add it to the database. The salesperson is automatically set to
     the one who creates the client.
     """
-    client_controller = ClientController()
     current_user = get_current_user()  # only salespeople can create clients
     try:
-        client_controller.create(
+        controller.clients.create(
             fname=firstname,
             lname=lastname,
             email=email,
@@ -166,9 +161,8 @@ def update_client(clientid, email, fname, lname, salesid, phone, company):
     Update a client's details. Client is identified by id or email.
     id takes precedence over email if both are provided and is needed to update email.
     """
-    client_controller = ClientController()
     try:
-        client_controller.update(
+        controller.clients.update(
             client_id=clientid,
             email=email,
             fname=fname,
@@ -189,12 +183,11 @@ def update_client(clientid, email, fname, lname, salesid, phone, company):
 @requires_permissions(["delete_client"])
 def delete_client(clientid, email):
     """Delete a client. Client is identified by id or email."""
-    client_controller = ClientController()
     # Get client by id or email
     if clientid is not None:
-        client = client_controller.repo.get_by_id(clientid)
+        client = controller.clients.repo.get_by_id(clientid)
     elif email is not None:
-        client = client_controller.repo.get_by_email(email)
+        client = controller.clients.repo.get_by_email(email)
     else:
         click.echo("Provide either id or email.")
         return
@@ -206,7 +199,7 @@ def delete_client(clientid, email):
     else:
         if click.confirm(f"Please confirm deletion of {client}", abort=True):
             try:
-                client_controller.delete(client)
+                controller.clients.delete(client)
                 click.echo("Client successfully deleted.")
             except Exception as e:
                 click.echo(f"Error: {e}")
@@ -220,9 +213,8 @@ def delete_client(clientid, email):
 @requires_permissions(["create_contract"])
 def create_contract(client_id: int, due_amount: float) -> None:
     """Create a contract and add it to the database."""
-    contract_controller = ContractController()
     try:
-        contract_controller.create(client_id, due_amount)
+        controller.contracts.create(client_id, due_amount)
         click.echo("Contract created.")
     except Exception as e:
         click.echo(f"Error: {e}")
@@ -238,9 +230,8 @@ def create_contract(client_id: int, due_amount: float) -> None:
 @requires_permissions(["update_contract"])
 def update_contract(contract_id, amount, paid, signed, clientmail):
     """Update a contract's details."""
-    contract_controller = ContractController()
     try:
-        contract_controller.update(contract_id, amount, paid, signed, clientmail)
+        controller.contracts.update(contract_id, amount, paid, signed, clientmail)
         click.echo("Contract updated.")
     except Exception as e:
         click.echo(f"Error: {e}")
@@ -289,9 +280,8 @@ def create_event(
     notes: str,
 ) -> None:
     """Create an event and add it to the database."""
-    event_controller = EventController()
     try:
-        event_controller.create(
+        controller.events.create(
             name=event_name,
             start_date=start,
             end_date=end,
@@ -338,9 +328,8 @@ def update_event(
     support_id: int,
 ) -> None:
     """Update an event's details."""
-    event_controller = EventController()
     try:
-        event_controller.update(
+        controller.events.update(
             event_id=event_id,
             name=name,
             start_date=start,
