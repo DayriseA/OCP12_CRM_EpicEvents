@@ -4,6 +4,7 @@ from typing import Optional
 from decimal import Decimal
 
 from epic_events_crm.database import get_session
+from epic_events_crm.authentication import get_current_user
 from epic_events_crm.models.contracts import Contract
 from epic_events_crm.repositories.contracts import ContractRepo
 
@@ -42,10 +43,21 @@ class ContractController:
         signed: Optional[bool],
         client_email: Optional[str],
     ) -> None:
-        """Update a contract's details."""
+        """
+        Update a contract's details.
+        Salesperson can only update contracts of their clients.
+        """
         contract = self.repo.get_by_id(contract_id)
         if contract is None:
             raise ValueError("Contract not found.")
+
+        # Check if the current user is a salesperson
+        employee = get_current_user()
+        if employee.department.name == "Sales":
+            # and if the contract is tied to one of their clients
+            if employee.id != contract.client.salesperson_id:
+                raise ValueError("You can only update contracts of your clients.")
+
         # Update of total amount implies update of due amount
         if total_amount is not None:
             total_amount = Decimal(total_amount)  # Contract model uses Decimal(15, 2)
