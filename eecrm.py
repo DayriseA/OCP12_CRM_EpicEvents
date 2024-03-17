@@ -162,6 +162,7 @@ def update_client(clientid, email, fname, lname, salesid, phone, company):
     """
     Update a client's details. Client is identified by id or email.
     id takes precedence over email if both are provided and is needed to update email.
+    Salespersons can only update clients they are assigned to.
     """
     try:
         controller.clients.update(

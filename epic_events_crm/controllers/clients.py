@@ -7,6 +7,7 @@ from epic_events_crm.utilities import (
     remove_spaces_and_hyphens,
 )
 from epic_events_crm.database import get_session
+from epic_events_crm.authentication import get_current_user
 from epic_events_crm.models.clients import Client
 from epic_events_crm.repositories.clients import ClientRepo
 from epic_events_crm.controllers.employees import EmployeeController
@@ -78,6 +79,7 @@ class ClientController:
     ) -> None:
         """
         Update a client's details. Identify client by id or email.
+        Only assigned salesperson can update client details.
         """
         if not client_id and not email:
             raise ValueError("Provide either client id or email.")
@@ -95,6 +97,11 @@ class ClientController:
             client = self.repo.get_by_email(email)
         if client is None:
             raise ValueError("Client not found.")
+
+        # Check if current user is assigned to the client to be updated
+        current_user = get_current_user()
+        if client.salesperson_id != current_user.id:
+            raise ValueError("You are not assigned to this client.")
 
         # Update client details
         if fname:
@@ -138,7 +145,5 @@ class ClientController:
 
     def get_clients_assigned_to_current_user(self):
         """Return a list of all clients assigned to the current user."""
-        from epic_events_crm.authentication import get_current_user
-
         current_user = get_current_user()
         return self.repo.get_clients_assigned_to(current_user.id)
