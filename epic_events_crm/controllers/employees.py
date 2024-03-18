@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import exc
 from pymysql.err import IntegrityError
 
@@ -113,6 +113,6 @@ class EmployeeController:
                 raise exc.SQLAlchemyError("Employee still assigned to a client.")
             raise exc.SQLAlchemyError(f"Error trying to commit deletion: {e}")
 
-    def get_all(self):
+    def get_all(self) -> Optional[List[Employee]]:
         """Return all employees."""
         return self.repo.get_all()

@@ -119,6 +119,17 @@ def delete_employee(empid, email):
                 click.echo(f"Error: {e}")
 
 
+@eecrm.command(name="list-emp", short_help="List employees.")
+@requires_auth
+def list_employees():
+    """List employees."""
+    try:
+        employees = controller.employees.repo.get_all()
+        view.employee.display_employees(employees)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
 # ############### CLIENTS ###############
 @eecrm.command(name="add-client", short_help="Add a client.")
 @click.argument("firstname")

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy import exc
 
 from epic_events_crm.utilities import (
@@ -140,10 +140,10 @@ class ClientController:
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
 
-    def get_all(self):
+    def get_all(self) -> Optional[List[Client]]:
         return self.repo.get_all()
 
-    def get_clients_assigned_to_current_user(self):
+    def get_clients_assigned_to_current_user(self) -> Optional[List[Client]]:
         """Return a list of all clients assigned to the current user."""
         current_user = get_current_user()
         return self.repo.get_clients_assigned_to(current_user.id)
