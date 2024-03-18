@@ -96,15 +96,28 @@ class ContractController:
         """Return a list of all contracts."""
         return self.repo.get_all()
 
-    def get_unsigned_or_unpaid(
-        self, unpaid: bool, unsigned: bool
+    def get_depending_on_flags(
+        self, unpaid: bool, unsigned: bool, noevent: bool
     ) -> Optional[List[Contract]]:
         """Return a list of contracts depending on the flags"""
-        if unsigned and unpaid:
-            return self.repo.get_unsigned_or_unpaid()
-        elif unsigned:
+        # Check that only one flag is True
+        if sum([unpaid, unsigned, noevent]) != 1:
+            raise ValueError("unpaid, unsigned and noevent are mutually exclusive.")
+        # Call the corresponding method
+        if unsigned:
             return self.repo.get_unsigned()
         elif unpaid:
             return self.repo.get_unpaid()
+        elif noevent:
+            return self.repo.get_without_event()
         else:
             return None
+
+    def get_salesperson_supervised(self, noevent: bool) -> Optional[List[Contract]]:
+        """Return a list of contracts of the current user's clients."""
+        user = get_current_user()
+        if user.department.name == "Sales":
+            if noevent:
+                return self.repo.get_by_salesperson_and_wo_event(user.id)
+            return self.repo.get_by_salesperson(user.id)
+        return None

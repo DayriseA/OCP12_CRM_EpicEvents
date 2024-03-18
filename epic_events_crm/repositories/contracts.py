@@ -3,6 +3,8 @@ from sqlalchemy import select, union
 
 from epic_events_crm.database import get_session
 from epic_events_crm.models.contracts import Contract
+from epic_events_crm.models.clients import Client
+from epic_events_crm.models.events import Event
 
 
 class ContractRepo:
@@ -85,3 +87,52 @@ class ContractRepo:
             ).all()
         except Exception as e:
             print(f"Error getting unsigned or unpaid contracts: {e}")
+
+    def get_by_salesperson(self, salesperson_id: int):
+        """Return all contracts related to the clients of a given salesperson."""
+        try:
+            return (
+                self.session.execute(
+                    select(Contract)
+                    .join(Client)
+                    .filter(Client.salesperson_id == salesperson_id)
+                )
+                .scalars()
+                .all()
+            )
+        except Exception as e:
+            print(f"Error getting contracts by salesperson: {e}")
+
+    def get_without_event(self):
+        """Return all contracts without an event."""
+        try:
+            return (
+                self.session.execute(
+                    select(Contract)
+                    .outerjoin(Event, Contract.id == Event.contract_id)
+                    .filter(Event.contract_id == None)  # noqa: E711
+                )
+                .scalars()
+                .all()
+            )
+        except Exception as e:
+            print(f"Error getting contracts without event: {e}")
+
+    def get_by_salesperson_and_wo_event(self, salesperson_id: int):
+        """Return all contracts without an event and related to a salesperson."""
+        try:
+            return (
+                self.session.execute(
+                    select(Contract)
+                    .join(Client)
+                    .outerjoin(Event, Contract.id == Event.contract_id)
+                    .filter(
+                        Client.salesperson_id == salesperson_id,
+                        Event.contract_id == None,  # noqa: E711
+                    )
+                )
+                .scalars()
+                .all()
+            )
+        except Exception as e:
+            print(f"Error getting contracts by salesperson and without event: {e}")

@@ -262,15 +262,25 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
 @eecrm.command(name="list-contracts", short_help="List contracts.")
 @click.option("--unpaid", "-up", is_flag=True, help="List unpaid contracts.")
 @click.option("--unsigned", "-us", is_flag=True, help="List unsigned contracts.")
+@click.option("--mine", "-m", is_flag=True, help="List contracts on clients of user.")
+@click.option("--noevent", "-ne", is_flag=True, help="List contracts without events.")
 @requires_auth
-def list_contracts(unpaid, unsigned):
+def list_contracts(unpaid, unsigned, mine, noevent):
     """
-    List contracts. --unpaid lists contracts still not fully paid.
-    --unsigned lists contracts not signed yet. Both flags can be used together.
+    List contracts. --unpaid, --unsigned and --noevent are mutually exclusive.
+    --mine can be used alone or combined with --noevent.
     """
-    if unpaid or unsigned:
+    if mine:
         try:
-            contracts = controller.contracts.get_unsigned_or_unpaid(unpaid, unsigned)
+            contracts = controller.contracts.get_salesperson_supervised(noevent)
+            view.contract.display_contracts(contracts)
+        except Exception as e:
+            click.echo(f"Error: {e}")
+    elif unpaid or unsigned or noevent:
+        try:
+            contracts = controller.contracts.get_depending_on_flags(
+                unpaid, unsigned, noevent
+            )
             view.contract.display_contracts(contracts)
         except Exception as e:
             click.echo(f"Error: {e}")
