@@ -6,6 +6,7 @@ from epic_events_crm.permissions import requires_permissions
 from epic_events_crm.controllers.main import MainController
 from epic_events_crm.views.main import MainView
 
+
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
     "epic_events_crm.models.clients",
@@ -19,6 +20,7 @@ for module in NEEDED_MODULES:
     except Exception as e:
         print(f"Could not import module {module}.")
         print(f"Error: {e}")
+
 
 controller = MainController()
 view = MainView()
@@ -124,7 +126,7 @@ def delete_employee(empid, email):
 def list_employees():
     """List employees."""
     try:
-        employees = controller.employees.repo.get_all()
+        employees = controller.employees.get_all()
         view.employee.display_employees(employees)
     except Exception as e:
         click.echo(f"Error: {e}")
@@ -232,7 +234,7 @@ def list_clients(mine):
             click.echo(f"Error: {e}")
     else:
         try:
-            clients = controller.clients.repo.get_all()
+            clients = controller.clients.get_all()
             view.client.display_clients(clients)
         except Exception as e:
             click.echo(f"Error: {e}")
@@ -297,7 +299,7 @@ def list_contracts(unpaid, unsigned, mine, noevent):
             click.echo(f"Error: {e}")
     else:
         try:
-            contracts = controller.contracts.repo.get_all()
+            contracts = controller.contracts.get_all()
             view.contract.display_contracts(contracts)
         except Exception as e:
             click.echo(f"Error: {e}")
