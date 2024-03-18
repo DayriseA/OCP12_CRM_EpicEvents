@@ -2,6 +2,7 @@ from typing import Optional, List
 from datetime import datetime
 
 from epic_events_crm.database import get_session
+from epic_events_crm.authentication import get_current_user
 from epic_events_crm.models.events import Event
 from epic_events_crm.repositories.events import EventRepo
 from epic_events_crm.repositories.contracts import ContractRepo
@@ -90,6 +91,13 @@ class EventController:
         event = self.repo.get_by_id(event_id)
         if event is None:
             raise ValueError("Event not found.")
+        # Check if the current user is a support person
+        employee = get_current_user()
+        if employee.department.name == "Support":
+            # and if the event is assigned to them
+            if employee.id != event.support_person_id:
+                raise ValueError("You can only update events assigned to you.")
+
         # Convert dates to datetime if in expected format (YYYY-MM-DD HH:MM)
         if start_date is not None:
             try:
