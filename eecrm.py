@@ -260,14 +260,26 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
 
 
 @eecrm.command(name="list-contracts", short_help="List contracts.")
+@click.option("--unpaid", "-up", is_flag=True, help="List unpaid contracts.")
+@click.option("--unsigned", "-us", is_flag=True, help="List unsigned contracts.")
 @requires_auth
-def list_contracts():
-    """List all contracts."""
-    try:
-        contracts = controller.contracts.repo.get_all()
-        view.contract.display_contracts(contracts)
-    except Exception as e:
-        click.echo(f"Error: {e}")
+def list_contracts(unpaid, unsigned):
+    """
+    List contracts. --unpaid lists contracts still not fully paid.
+    --unsigned lists contracts not signed yet. Both flags can be used together.
+    """
+    if unpaid or unsigned:
+        try:
+            contracts = controller.contracts.get_unsigned_or_unpaid(unpaid, unsigned)
+            view.contract.display_contracts(contracts)
+        except Exception as e:
+            click.echo(f"Error: {e}")
+    else:
+        try:
+            contracts = controller.contracts.repo.get_all()
+            view.contract.display_contracts(contracts)
+        except Exception as e:
+            click.echo(f"Error: {e}")
 
 
 # # ############### EVENTS ###############

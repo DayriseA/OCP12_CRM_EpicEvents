@@ -1,6 +1,6 @@
 from sqlalchemy import exc
 from pymysql.err import IntegrityError
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
 
 from epic_events_crm.database import get_session
@@ -92,6 +92,19 @@ class ContractController:
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
 
-    def get_all(self):
+    def get_all(self) -> Optional[List[Contract]]:
         """Return a list of all contracts."""
         return self.repo.get_all()
+
+    def get_unsigned_or_unpaid(
+        self, unpaid: bool, unsigned: bool
+    ) -> Optional[List[Contract]]:
+        """Return a list of contracts depending on the flags"""
+        if unsigned and unpaid:
+            return self.repo.get_unsigned_or_unpaid()
+        elif unsigned:
+            return self.repo.get_unsigned()
+        elif unpaid:
+            return self.repo.get_unpaid()
+        else:
+            return None
