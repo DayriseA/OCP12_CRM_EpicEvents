@@ -1,7 +1,9 @@
-from sqlalchemy import exc
-from pymysql.err import IntegrityError
-from typing import Optional, List
 from decimal import Decimal
+from pymysql.err import IntegrityError
+from sentry_sdk import capture_message
+from sqlalchemy import exc
+from typing import Optional, List
+
 
 from epic_events_crm.database import get_session
 from epic_events_crm.authentication import get_current_user
@@ -68,9 +70,11 @@ class ContractController:
         if paid_amount is not None:
             paid_amount = Decimal(paid_amount)  # Contract model uses Decimal(15, 2)
             contract.due_amount -= paid_amount
-        # Update signed status
+        # Update signed status. If changed to True, log into Sentry
         if signed is not None:
+            old_status = contract.signed
             contract.signed = signed
+            is_contract_newly_signed = not old_status and signed
 
         if client_email is not None:
             # Check if client exists
@@ -89,6 +93,11 @@ class ContractController:
             print(f"Please note that due amount is negative: {contract.due_amount}")
         try:
             self.session.commit()
+            if is_contract_newly_signed:
+                capture_message(
+                    f"{employee} signed contract (id:{contract_id}) for {contract.client}",  # noqa
+                    level="info",
+                )
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
 

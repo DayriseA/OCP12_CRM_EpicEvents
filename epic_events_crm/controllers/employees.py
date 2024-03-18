@@ -1,7 +1,9 @@
 from typing import Optional, List
-from sqlalchemy import exc
 from pymysql.err import IntegrityError
+from sentry_sdk import capture_message
+from sqlalchemy import exc
 
+from epic_events_crm.authentication import get_current_user
 from epic_events_crm.utilities import is_email_valid
 from epic_events_crm.database import get_session
 from epic_events_crm.models.employees import Employee
@@ -50,7 +52,9 @@ class EmployeeController:
         )
         self.repo.add(employee)
         try:
+            current_user = get_current_user()
             self.session.commit()
+            capture_message(f"{current_user} created new {employee}", level="info")
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
 
@@ -96,7 +100,9 @@ class EmployeeController:
                 raise ValueError(f"Department id not found. {msg}")
 
         try:
+            current_user = get_current_user()
             self.session.commit()
+            capture_message(f"{current_user} updated {employee}", level="info")
         except exc.SQLAlchemyError as e:
             raise exc.SQLAlchemyError(f"Error: {e}")
 

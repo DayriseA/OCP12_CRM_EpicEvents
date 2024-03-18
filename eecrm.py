@@ -1,11 +1,14 @@
 import importlib
 import click
+import sentry_sdk
+import os
 
 from epic_events_crm.authentication import log_in, requires_auth, get_current_user
 from epic_events_crm.permissions import requires_permissions
 from epic_events_crm.controllers.main import MainController
 from epic_events_crm.views.main import MainView
 
+sentry_sdk.init(dsn=os.environ.get("SENTRY_DSN"))
 
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
@@ -66,6 +69,7 @@ def create_employee(
             department_id=did,
         )
         click.echo(f"Employee {fname} {lname} ({email}) created.")
+
     except Exception as e:
         click.echo(f"Error: {e}")
 
