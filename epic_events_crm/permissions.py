@@ -1,4 +1,7 @@
 from epic_events_crm.authentication import get_current_user
+from epic_events_crm.views.base import BaseView
+
+base_view = BaseView()
 
 
 def get_user_permissions_names() -> list[str]:
@@ -31,7 +34,9 @@ def requires_permissions(required_permissions: list[str]):
             ):
                 return func(*args, **kwargs)
             else:
-                print("You don't have the required permissions.")
+                base_view.display_as(
+                    "You don't have the required permissions.", "warning"
+                )
 
         return wrapper
 

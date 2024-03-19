@@ -76,13 +76,13 @@ def valid_token_in_env() -> Union[bool, dict]:
             decoded_token = jwt.decode(token, jwt_secret, algorithms=["HS256"])
             return decoded_token
         except jwt.ExpiredSignatureError:
-            print("The token has expired.")
+            base_view.display_as("The token has expired.", "warning")
             return False
         except jwt.InvalidSignatureError:
-            print("The token signature is invalid.")
+            print("The token signature is invalid.", "error")
             return False
         except jwt.InvalidTokenError:
-            print("The token is invalid.")
+            print("The token is invalid.", "error")
             return False
     return False
 
@@ -102,7 +102,7 @@ def requires_auth(f):
         try:
             valid_token = valid_token_in_env()
         except Exception as e:
-            print(f"Error: {e}")
+            base_view.display_as(f"Error: {e}", "error")
         if valid_token:
             return f(*args, **kwargs)
 

@@ -39,9 +39,9 @@ def eecrm():
 @click.option("--password", "-p", prompt=True, hide_input=True)
 def login(email, password):
     if log_in(email, password):
-        click.echo("Logged in for 15 minutes.")
+        view.base.display_as("Logged in for 15 minutes.", "info")
     else:
-        click.echo("Invalid credentials.")
+        view.base.display_as("Invalid credentials.", "error")
 
 
 # ############### EMPLOYEES ###############
@@ -68,10 +68,10 @@ def create_employee(
             password=password,
             department_id=did,
         )
-        click.echo(f"Employee {fname} {lname} ({email}) created.")
+        view.base.display_as(f"Employee {fname} {lname} ({email}) created.", "info")
 
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="update-emp", short_help="Update an employee.")
@@ -91,9 +91,9 @@ def update_employee(empid, email, fname, lname, did):
         controller.employees.update(
             employee_id=empid, email=email, fname=fname, lname=lname, department_id=did
         )
-        click.echo("Employee updated.")
+        view.base.display_as("Employee updated.", "info")
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="delete-emp", short_help="Delete an employee.")
@@ -109,20 +109,20 @@ def delete_employee(empid, email):
     elif email is not None:
         employee = controller.employees.repo.get_by_email(email)
     else:
-        click.echo("Provide either id or email.")
+        view.base.display_as("Provide either id or email.", "error")
         return
 
     if employee is None:
-        click.echo("Employee not found.")
+        view.base.display_as("Employee not found.", "error")
         return
     # Confirm deletion of the right employee before proceeding
     else:
         if click.confirm(f"Please confirm deletion of {employee}", abort=True):
             try:
                 controller.employees.delete(employee)
-                click.echo("Employee successfully deleted.")
+                view.base.display_as("Employee successfully deleted.", "info")
             except Exception as e:
-                click.echo(f"Error: {e}")
+                view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="list-emp", short_help="List employees.")
@@ -133,7 +133,7 @@ def list_employees():
         employees = controller.employees.get_all()
         view.employee.display_employees(employees)
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 # ############### CLIENTS ###############
@@ -160,9 +160,11 @@ def create_client(firstname: str, lastname: str, email: str, phone: str, company
             company_name=company,
             salesperson_id=current_user.id,
         )
-        click.echo(f"Client {firstname} {lastname} ({email}) created.")
+        view.base.display_as(
+            f"Client {firstname} {lastname} ({email}) created.", "info"
+        )
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="update-client", short_help="Update a client.")
@@ -191,9 +193,9 @@ def update_client(clientid, email, fname, lname, salesid, phone, company):
             phone=phone,
             company_name=company,
         )
-        click.echo("Client updated.")
+        view.base.display_as("Client updated.", "info")
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="delete-client", short_help="Delete a client.")
@@ -209,20 +211,20 @@ def delete_client(clientid, email):
     elif email is not None:
         client = controller.clients.repo.get_by_email(email)
     else:
-        click.echo("Provide either id or email.")
+        view.base.display_as("Provide either id or email.", "error")
         return
 
     if client is None:
-        click.echo("Client not found.")
+        view.base.display_as("Client not found.", "error")
         return
     # Confirm deletion of the right client before proceeding
     else:
         if click.confirm(f"Please confirm deletion of {client}", abort=True):
             try:
                 controller.clients.delete(client)
-                click.echo("Client successfully deleted.")
+                view.base.display_as("Client successfully deleted.", "info")
             except Exception as e:
-                click.echo(f"Error: {e}")
+                view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="list-clients", short_help="List clients.")
@@ -235,13 +237,13 @@ def list_clients(mine):
             clients = controller.clients.get_clients_assigned_to_current_user()
             view.client.display_clients(clients)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
     else:
         try:
             clients = controller.clients.get_all()
             view.client.display_clients(clients)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
 
 
 # ############### CONTRACTS ###############
@@ -254,9 +256,9 @@ def create_contract(client_id: int, due_amount: float) -> None:
     """Create a contract and add it to the database."""
     try:
         controller.contracts.create(client_id, due_amount)
-        click.echo("Contract created.")
+        view.base.display_as("Contract created.", "info")
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="update-contract", short_help="Update a contract.")
@@ -271,9 +273,9 @@ def update_contract(contract_id, amount, paid, signed, clientmail):
     """Update a contract's details."""
     try:
         controller.contracts.update(contract_id, amount, paid, signed, clientmail)
-        click.echo("Contract updated.")
+        view.base.display_as("Contract updated.", "info")
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="list-contracts", short_help="List contracts.")
@@ -292,7 +294,7 @@ def list_contracts(unpaid, unsigned, mine, noevent):
             contracts = controller.contracts.get_salesperson_supervised(noevent)
             view.contract.display_contracts(contracts)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
     elif unpaid or unsigned or noevent:
         try:
             contracts = controller.contracts.get_depending_on_flags(
@@ -300,13 +302,13 @@ def list_contracts(unpaid, unsigned, mine, noevent):
             )
             view.contract.display_contracts(contracts)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
     else:
         try:
             contracts = controller.contracts.get_all()
             view.contract.display_contracts(contracts)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
 
 
 # # ############### EVENTS ###############
@@ -365,9 +367,9 @@ def create_event(
             contract_id=contract_id,
             notes=notes,
         )
-        click.echo("Event created.")
+        view.base.display_as("Event created.", "info")
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="update-event", short_help="Update an event.")
@@ -415,9 +417,9 @@ def update_event(
             append=append,
             support_person_id=support_id,
         )
-        click.echo("Event updated.")
+        view.base.display_as("Event updated.", "info")
     except Exception as e:
-        click.echo(f"Error: {e}")
+        view.base.display_as(f"Error: {e}", "error")
 
 
 @eecrm.command(name="list-events", short_help="List events.")
@@ -436,19 +438,19 @@ def list_events(nosupport, mine):
             events = controller.events.get_events_without_support()
             view.event.display_events(events)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
     elif mine:
         try:
             events = controller.events.get_events_assigned_to_current_user()
             view.event.display_events(events)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
     else:
         try:
             events = controller.events.get_all()
             view.event.display_events(events)
         except Exception as e:
-            click.echo(f"Error: {e}")
+            view.base.display_as(f"Error: {e}", "error")
 
 
 if __name__ == "__main__":
