@@ -18,7 +18,7 @@ import sys
 import click
 import pymysql
 from cryptography.fernet import Fernet
-from dotenv import set_key
+from dotenv import set_key, load_dotenv
 from epic_events_crm.views.base import BaseView
 
 view = BaseView()
@@ -176,6 +176,51 @@ def initialize_database(user, host, port):
         with connection.cursor() as cursor:
             cursor.execute(migrations_stmt)
             cursor.execute(app_stmt)
+            connection.commit()
+    except pymysql.Error as err:
+        view.display_as(f"Error granting privileges: {err}", "error")
+        raise err
+
+
+@init.command(name="test-db", short_help="Initialize the MySQL test database.")
+@click.option(
+    "-u",
+    "--user",
+    prompt=True,
+    help="The user with rights to create databases, users and grant privileges.",
+)
+def initialize_test_database(user):
+    """
+    Initialize the MySQL test database.
+    Must be run after the main database is initialized.
+    """
+    # Load the environment variables from the .env file
+    load_dotenv()
+    app_user = os.getenv("APP_USER")
+    migrations_user = os.getenv("MIGRATIONS_USER")
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
+    db_name = os.getenv("DB_NAME")
+    # Set test database name based on the main database name
+    db_test_name = db_name + "_test"
+    set_key(".env", "DB_TEST_NAME", db_test_name)
+
+    # Connect to the MySQL instance
+    password = getpass.getpass("Enter your MySQL password:")
+    connection = connect_to_mysql_instance(user, db_host, password, int(db_port))
+
+    # Create the test database
+    create_database(connection, db_test_name)
+
+    # Grant all privileges on the test database
+    app_stmt = f"GRANT ALL PRIVILEGES ON {db_test_name}.* TO '{app_user}'@'{db_host}'"
+    migrations_stmt = (
+        f"GRANT ALL PRIVILEGES ON {db_test_name}.* TO '{migrations_user}'@'{db_host}'"
+    )
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute(app_stmt)
+            cursor.execute(migrations_stmt)
             connection.commit()
     except pymysql.Error as err:
         view.display_as(f"Error granting privileges: {err}", "error")
