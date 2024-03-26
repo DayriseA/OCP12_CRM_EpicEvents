@@ -3,13 +3,15 @@ This script will initialize the MySQL database and create the necessary users fo
 application. Remember that in real-world scenarios, you should never store sensitive
 information like passwords in plain text or environment variables. Use a secure password
 manager or encryption techniques (it may be worth to look into HashiCorp Vault, AWS
-Secrets Manager or Azure Key Vault). For this school project, we will do our best
-considering that the local environment is secure enough and safe from unauthorized
-access.
+Secrets Manager or Azure Key Vault). A standard employee in scenario should never have
+access to the commands defined in this module.
+For this school project we will do our best, assuming that the local environment is
+secure enough and safe from unauthorized access.
 """
 
 import configparser
 import getpass
+import importlib
 import os
 import sys
 
@@ -17,6 +19,9 @@ import click
 import pymysql
 from cryptography.fernet import Fernet
 from dotenv import set_key
+from epic_events_crm.views.base import BaseView
+
+view = BaseView()
 
 
 def connect_to_mysql_instance(user, host, password, port=3306):
@@ -27,10 +32,12 @@ def connect_to_mysql_instance(user, host, password, port=3306):
         connection = pymysql.connect(host=host, user=user, password=password, port=port)
         return connection
     except pymysql.err.OperationalError:
-        click.echo("Connection failed: please check your username and password.")
+        view.display_as(
+            "Connection failed: please check your username and password.", "error"
+        )
         sys.exit(1)
     except pymysql.Error as err:
-        click.echo(f"Error connecting to MySQL instance: {err}")
+        view.display_as(f"Error connecting to MySQL instance: {err}", "error")
         sys.exit(1)
 
 
@@ -41,7 +48,7 @@ def create_database(connection, db_name):
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name}")
             connection.commit()
     except pymysql.Error as err:
-        click.echo(f"Error creating database: {err}")
+        view.display_as(f"Error creating database: {err}", "error")
         sys.exit(1)
 
 
@@ -54,7 +61,7 @@ def create_user(connection, username, password, host):
             )
             connection.commit()
     except pymysql.Error as err:
-        click.echo(f"Error creating user: {err}")
+        view.display_as(f"Error creating user: {err}", "error")
         sys.exit(1)
 
 
@@ -62,11 +69,11 @@ def prompt_for_password(prompt_msg):
     """Prompt the user for password twice and return the value if both match."""
     while True:
         password = getpass.getpass(prompt_msg)
-        password_confirm = getpass.getpass("Confirm password: ")
+        password_confirm = getpass.getpass("Please confirm: ")
         if password == password_confirm:
             return password
         else:
-            click.echo("Passwords do not match. Please try again.")
+            view.display_as("Confirmation not matching. Please try again.", "warning")
 
 
 # get infos from the config file, regardless of the current working directory
@@ -85,7 +92,7 @@ def init():
     pass
 
 
-@init.command(name="db")
+@init.command(name="db", short_help="Initialize the MySQL database and users.")
 @click.option(
     "-u",
     "--user",
@@ -134,9 +141,10 @@ def initialize_database(user, host, port):
     app_pwd_encrypted = fernet.encrypt(app_pwd.encode()).decode()
     set_key(".env", "MIGRATIONS_PWD", migrations_pwd_encrypted)
     set_key(".env", "APP_PWD", app_pwd_encrypted)
-    click.echo(
+    view.display_as(
         "Passwords encrypted and stored in .env file. Don't forget to save the "
-        "key! (it will not be shown again)"
+        "key! (it will not be shown again)",
+        "warning",
     )
     click.echo(f"Key: {key.decode()}")
 
@@ -170,18 +178,48 @@ def initialize_database(user, host, port):
             cursor.execute(app_stmt)
             connection.commit()
     except pymysql.Error as err:
-        click.echo(f"Error granting privileges: {err}")
+        view.display_as(f"Error granting privileges: {err}", "error")
         raise err
 
 
-@init.command(name="jwt-key")
+@init.command(name="jwt-key", short_help="Set the JWT secret key.")
 def set_jwt_secret():
     """Set the JWT_SECRET in the .env file."""
     # Prompt for the JWT secret and encrypt it
-    plain_jwt_secret = input("Enter the JWT secret: ")
+    plain_jwt_secret = prompt_for_password("Define the JWT secret: ")
     encrypted_jwt_secret = fernet.encrypt(plain_jwt_secret.encode()).decode()
     # Store it in the .env file
     set_key(".env", "JWT_SECRET", encrypted_jwt_secret)
+    view.display_as("JWT secret successfully set and stored.", "info")
+
+
+@init.command(name="create-superuser", short_help="Infos will be prompted.")
+def create_superuser():
+    """Create a superuser for the application in the database."""
+    from epic_events_crm.controllers.employees import EmployeeController
+
+    NEEDED_MODULES = (
+        "epic_events_crm.models.clients",
+        "epic_events_crm.models.contracts",
+        "epic_events_crm.models.events",
+    )
+    for module in NEEDED_MODULES:
+        try:
+            importlib.import_module(module)
+        except ImportError:
+            view.display_as(f"Could not import module {module}.", "error")
+
+    controller = EmployeeController()
+    fname = click.prompt("First name")
+    lname = click.prompt("Last name")
+    email = click.prompt("Email")
+    password = prompt_for_password("Password: ")
+
+    try:
+        controller.create_superuser(fname, lname, email, password)
+        view.display_as("Superuser created successfully.", "info")
+    except Exception as e:
+        view.display_as(f"Error creating superuser: {e}", "error")
 
 
 if __name__ == "__main__":

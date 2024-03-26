@@ -28,7 +28,10 @@ class EmployeeController:
     def create(
         self, fname: str, lname: str, email: str, password: str, department_id: int
     ) -> None:
-        """Create an employee and add it to the database."""
+        """
+        Create an employee and add it to the database.
+        Can't create in the Superuser department.
+        """
         # Check if email is valid
         if not is_email_valid(email):
             raise ValueError("Invalid email.")
@@ -42,6 +45,10 @@ class EmployeeController:
         if not self.department_controller.repo.get_by_id(department_id):
             msg = self.department_controller.display_all()
             raise ValueError(f"Department id not found. {msg}")
+        # Prevent from creating an employee in the Superuser department
+        superuser_dpt = self.department_controller.repo.get_by_name("Superuser")
+        if department_id == superuser_dpt.id:
+            raise PermissionError("You are not allowed to create a superuser.")
 
         employee = Employee(
             fname=fname,
@@ -122,3 +129,36 @@ class EmployeeController:
     def get_all(self) -> Optional[List[Employee]]:
         """Return all employees."""
         return self.repo.get_all()
+
+    def create_superuser(
+        self, fname: str, lname: str, email: str, password: str
+    ) -> None:
+        """
+        Create a superuser and add it to the database.
+        """
+        # Check if email is valid
+        if not is_email_valid(email):
+            raise ValueError("Invalid email.")
+        # Check if email is not already used
+        if self.repo.get_by_email(email):
+            raise ValueError("Email already in use.")
+        # Format first and last name
+        fname = fname.title()
+        lname = lname.upper()
+        # Get the Superuser department id
+        superuser_dpt = self.department_controller.repo.get_by_name("Superuser")
+        if not superuser_dpt:
+            raise ValueError("No Superuser department. Follow setup instructions.")
+
+        employee = Employee(
+            fname=fname,
+            lname=lname,
+            email=email,
+            password=password,
+            department_id=superuser_dpt.id,
+        )
+        self.repo.add(employee)
+        try:
+            self.session.commit()
+        except exc.SQLAlchemyError as e:
+            raise exc.SQLAlchemyError(f"Error: {e}")
