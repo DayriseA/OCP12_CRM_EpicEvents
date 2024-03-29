@@ -1,6 +1,6 @@
 import importlib
 import pytest
-from sqlalchemy import inspect, exc
+from sqlalchemy import inspect, exc, delete
 
 from epic_events_crm.models.employees import Employee
 from epic_events_crm.repositories.employees import EmployeeRepo
@@ -22,23 +22,39 @@ for module in NEEDED_MODULES:
 class TestEmployeeRepo:
     """Test EmployeeRepo class."""
 
-    @pytest.fixture(autouse=True)
-    def setup_class(self, session):
-        self.repo = EmployeeRepo(session)
-        self.employee1_kwargs = {
+    # https://stackoverflow.com/questions/62289556/pytest-fixture-with-scope-class-doesnt-works-with-setup-class-method
+    # https://stackoverflow.com/questions/63552491/pytest-assigning-attribute-in-a-fixture-not-visible-to-test-cases
+    @pytest.fixture(scope="class", autouse=True)
+    @classmethod
+    def setup_and_teardown(cls, session):
+        print("\nSETUP CLASS")
+        cls.repo = EmployeeRepo(session)
+        cls.employee1_kwargs = {
             "fname": "John",
-            "lname": "Doe",
+            "lname": "DOE",
             "email": "johndoe@test.com",
             "password": "Passw0rd",
             "department_id": "1",
         }
-        self.employee2_kwargs = {
+        cls.employee2_kwargs = {
             "fname": "Jane",
-            "lname": "Doe",
+            "lname": "DOE",
             "email": "janedoe@test.fr",
             "password": "Passw0rd",
             "department_id": "1",
         }
+        yield
+        print("\nTEARDOWN CLASS")
+        # Rolllback to avoid sqlalchemy.exc.PendingRollbackError due to last test
+        session.rollback()
+        session.execute(delete(Employee))
+        session.commit()
+
+    def test_setup(self):
+        """Test the setup."""
+        assert self.repo.session is not None
+        assert self.employee1_kwargs is not None
+        assert self.employee2_kwargs is not None
 
     def test_add(self):
         """Test that the employee is added to the session."""
@@ -46,23 +62,23 @@ class TestEmployeeRepo:
         employee2 = Employee(**self.employee2_kwargs)
         self.repo.add(employee1)
         assert inspect(employee1).pending
-        self.repo.session.flush()
+        self.repo.session.commit()
         assert inspect(employee1).persistent
         self.repo.add(employee2)
         assert inspect(employee2).pending
 
     def test_get_by_email(self):
         """Test that an employee is obtained by its email with expected attributes."""
-        employee = self.repo.get_by_email("janedoe@test.fr")
+        employee = self.repo.get_by_email("johndoe@test.com")
         assert isinstance(employee, Employee)
         assert inspect(employee).persistent
-        assert employee.fname == "Jane" and employee.lname == "Doe"
+        assert employee.fname == "John" and employee.lname == "DOE"
         assert employee.password.startswith("$argon2id$")
         assert employee.created_at is not None
 
     def test_get_by_id(self):
         """Test that an employee is obtained by its id."""
-        employee = self.repo.get_by_id(8)
+        employee = self.repo.get_by_id(2)
         assert isinstance(employee, Employee)
 
     def test_get_all(self):

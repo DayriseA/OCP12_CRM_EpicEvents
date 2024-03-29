@@ -99,7 +99,13 @@ def run_migrations_online() -> None:
     db_user = os.getenv("MIGRATIONS_USER")
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
-    db_name = os.getenv("DB_NAME")
+
+    # db_name is first checked in the config (sometime programmatically set to test db)
+    db_config_name = config.get_main_option("sqlalchemy.database")
+    if db_config_name:
+        db_name = db_config_name
+    else:
+        db_name = os.getenv("DB_NAME")
 
     # Get and decrypt the password
     if os.getenv("EECRM_KEY"):
