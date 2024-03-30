@@ -2,8 +2,10 @@ import importlib
 import pytest
 from sqlalchemy import inspect, exc
 
-from epic_events_crm.models.departments_permissions import Department
+from epic_events_crm.models.departments_permissions import Department, Permission
 from epic_events_crm.repositories.departments_permissions import DepartmentRepo
+from epic_events_crm.repositories.departments_permissions import PermissionRepo
+
 
 NEEDED_MODULES = (
     "epic_events_crm.models.departments_permissions",
@@ -75,3 +77,58 @@ class TestDepartmentRepo:
         self.repo.add(department)  # No error because it's still pending
         with pytest.raises(exc.IntegrityError):
             self.repo.session.flush()
+
+
+class TestPermissionRepo:
+    """Test PermissionRepo class."""
+
+    @pytest.fixture(autouse=True)
+    def setup_class(self, session):
+        self.repo = PermissionRepo(session)
+
+    def test_add(self):
+        """Test that the permission is added to the session."""
+        permission = Permission(name="Create_test")
+        permission_2 = Permission(name="Delete_test")
+        self.repo.add(permission)
+        assert inspect(permission).pending
+        self.repo.session.flush()
+        assert inspect(permission).persistent
+        self.repo.add(permission_2)
+        assert inspect(permission_2).pending
+
+    def test_get_by_name(self):
+        """Test that a permission is obtained by its name."""
+        permission = self.repo.get_by_name("Delete_test")
+        assert isinstance(permission, Permission)
+        assert permission.name == "Delete_test"
+
+        # as a side effect the query changed the state from pending to persistent
+        assert inspect(permission).persistent
+
+    def test_get_by_id(self):
+        """Test that a permission is obtained by its id."""
+        permission = self.repo.get_by_id(1)
+        assert isinstance(permission, Permission)
+
+    def test_get_all(self):
+        """Test the method returns all permissions as a Permission list."""
+        permissions = self.repo.get_all()
+        assert isinstance(permissions, list)
+        assert isinstance(permissions[0], Permission)
+
+    def test_delete(self):
+        """Test that a permission is marked for deletion in the session."""
+        permission = self.repo.get_by_name("Delete_test")
+        self.repo.delete(permission)
+        # we have to flush else its still shows as persistent
+        self.repo.session.flush()
+        assert inspect(permission).deleted
+
+    def test_add_existing_name(self):
+        """Test add method with an existing name."""
+        permission = Permission(name="Create_test")
+        self.repo.add(permission)  # No error because it's still pending
+        with pytest.raises(exc.IntegrityError):
+            self.repo.session.flush()
+        self.repo.session.rollback()
