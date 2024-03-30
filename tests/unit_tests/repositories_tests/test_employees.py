@@ -1,6 +1,6 @@
 import importlib
 import pytest
-from sqlalchemy import inspect, exc, delete
+from sqlalchemy import inspect, exc
 
 from epic_events_crm.models.employees import Employee
 from epic_events_crm.repositories.employees import EmployeeRepo
@@ -26,13 +26,12 @@ class TestEmployeeRepo:
     # https://stackoverflow.com/questions/63552491/pytest-assigning-attribute-in-a-fixture-not-visible-to-test-cases
     @pytest.fixture(scope="class", autouse=True)
     @classmethod
-    def setup_and_teardown(cls, session):
-        print("\nSETUP CLASS")
+    def setup(cls, session):
         cls.repo = EmployeeRepo(session)
         cls.employee1_kwargs = {
-            "fname": "John",
-            "lname": "DOE",
-            "email": "johndoe@test.com",
+            "fname": "Jean",
+            "lname": "DUH",
+            "email": "jeanduh@test.com",
             "password": "Passw0rd",
             "department_id": "1",
         }
@@ -43,12 +42,6 @@ class TestEmployeeRepo:
             "password": "Passw0rd",
             "department_id": "1",
         }
-        yield
-        print("\nTEARDOWN CLASS")
-        # Rolllback to avoid sqlalchemy.exc.PendingRollbackError due to last test
-        session.rollback()
-        session.execute(delete(Employee))
-        session.commit()
 
     def test_setup(self):
         """Test the setup."""
@@ -69,17 +62,18 @@ class TestEmployeeRepo:
 
     def test_get_by_email(self):
         """Test that an employee is obtained by its email with expected attributes."""
-        employee = self.repo.get_by_email("johndoe@test.com")
+        employee = self.repo.get_by_email("jeanduh@test.com")
         assert isinstance(employee, Employee)
-        assert inspect(employee).persistent
-        assert employee.fname == "John" and employee.lname == "DOE"
+        assert employee.fname == "Jean" and employee.lname == "DUH"
+        assert employee.email == "jeanduh@test.com"
         assert employee.password.startswith("$argon2id$")
         assert employee.created_at is not None
 
     def test_get_by_id(self):
         """Test that an employee is obtained by its id."""
-        employee = self.repo.get_by_id(2)
+        employee = self.repo.get_by_id(2)  # from conftest.py 'populate_db' fixture
         assert isinstance(employee, Employee)
+        assert employee.email == "flionel@manager.com"
 
     def test_get_all(self):
         """Test the method returns all employees as an Employee list."""
