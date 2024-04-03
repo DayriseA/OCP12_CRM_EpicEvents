@@ -1,25 +1,9 @@
-import importlib
 import pytest
 from sqlalchemy import inspect, exc
 
 from epic_events_crm.models.departments_permissions import Department, Permission
 from epic_events_crm.repositories.departments_permissions import DepartmentRepo
 from epic_events_crm.repositories.departments_permissions import PermissionRepo
-
-
-NEEDED_MODULES = (
-    "epic_events_crm.models.departments_permissions",
-    "epic_events_crm.models.clients",
-    "epic_events_crm.models.contracts",
-    "epic_events_crm.models.events",
-    "epic_events_crm.models.employees",
-)
-for module in NEEDED_MODULES:
-    try:
-        importlib.import_module(module)
-    except Exception as e:
-        print(f"Could not import module {module}.")
-        print(f"Error: {e}")
 
 
 class TestDepartmentRepo:
@@ -58,7 +42,7 @@ class TestDepartmentRepo:
         """Test the method returns all departments as a Department list."""
         departments = self.repo.get_all()
         assert isinstance(departments, list)
-        assert isinstance(departments[0], Department)
+        assert all(isinstance(department, Department) for department in departments)
 
     def test_delete(self):
         """Test that a department is marked for deletion in the session."""
@@ -115,7 +99,7 @@ class TestPermissionRepo:
         """Test the method returns all permissions as a Permission list."""
         permissions = self.repo.get_all()
         assert isinstance(permissions, list)
-        assert isinstance(permissions[0], Permission)
+        assert all(isinstance(permission, Permission) for permission in permissions)
 
     def test_delete(self):
         """Test that a permission is marked for deletion in the session."""

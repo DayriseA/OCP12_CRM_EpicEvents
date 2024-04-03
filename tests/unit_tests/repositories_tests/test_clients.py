@@ -1,22 +1,8 @@
-import importlib
 import pytest
 from sqlalchemy import inspect, exc
 
 from epic_events_crm.models.clients import Client
 from epic_events_crm.repositories.clients import ClientRepo
-
-NEEDED_MODULES = (
-    "epic_events_crm.models.employees",
-    "epic_events_crm.models.departments_permissions",
-    "epic_events_crm.models.contracts",
-    "epic_events_crm.models.events",
-)
-for module in NEEDED_MODULES:
-    try:
-        importlib.import_module(module)
-    except Exception as e:
-        print(f"Could not import module {module}.")
-        print(f"Error: {e}")
 
 
 class TestClientRepo:
@@ -87,7 +73,7 @@ class TestClientRepo:
         """Test that all clients are obtained as a list of Client objects."""
         clients = self.repo.get_all()
         assert isinstance(clients, list)
-        assert isinstance(clients[0], Client)
+        assert all(isinstance(client, Client) for client in clients)
 
     def test_add_existing_email(self):
         """Test that adding a client with an existing email raises an error."""

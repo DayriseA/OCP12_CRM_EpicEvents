@@ -1,22 +1,8 @@
-import importlib
 import pytest
 from sqlalchemy import inspect, exc
 
 from epic_events_crm.models.employees import Employee
 from epic_events_crm.repositories.employees import EmployeeRepo
-
-NEEDED_MODULES = (
-    "epic_events_crm.models.departments_permissions",
-    "epic_events_crm.models.clients",
-    "epic_events_crm.models.contracts",
-    "epic_events_crm.models.events",
-)
-for module in NEEDED_MODULES:
-    try:
-        importlib.import_module(module)
-    except Exception as e:
-        print(f"Could not import module {module}.")
-        print(f"Error: {e}")
 
 
 class TestEmployeeRepo:
@@ -79,7 +65,7 @@ class TestEmployeeRepo:
         """Test the method returns all employees as an Employee list."""
         employees = self.repo.get_all()
         assert isinstance(employees, list)
-        assert isinstance(employees[0], Employee)
+        assert all(isinstance(employee, Employee) for employee in employees)
 
     def test_delete(self):
         """Test that an employee is marked for deletion in the session."""
