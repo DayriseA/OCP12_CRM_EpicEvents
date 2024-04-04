@@ -28,6 +28,7 @@ class TestEventRepo:
             "contract_id": "1",
             "support_person_id": "7",
         }
+        cls.created_id = None
 
     def test_add(self):
         """Test that the event is added to the session."""
@@ -36,6 +37,7 @@ class TestEventRepo:
         assert inspect(event1).pending
         self.repo.session.commit()
         assert inspect(event1).persistent
+        self.created_id = event1.id
 
     def test_get_by_id(self):
         """Test that an event is obtained by its id."""
@@ -60,7 +62,7 @@ class TestEventRepo:
 
     def delete(self):
         """Test that the event is marked for deletion in the session."""
-        event = self.repo.get_by_id(4)  # the one created in test_add()
+        event = self.repo.get_by_id(self.created_id)  # the one created in test_add()
         self.repo.delete(event)
         self.repo.session.flush()
         assert inspect(event).deleted

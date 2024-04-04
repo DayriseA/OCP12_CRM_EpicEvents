@@ -28,6 +28,13 @@ class TestEmployeeRepo:
             "password": "Passw0rd",
             "department_id": "1",
         }
+        cls.existing_mail_kwargs = {
+            "fname": "Existing",
+            "lname": "Mail",
+            "email": "jeanduh@test.com",
+            "password": "Passw0rd",
+            "department_id": "2",
+        }
 
     def test_setup(self):
         """Test the setup."""
@@ -76,7 +83,7 @@ class TestEmployeeRepo:
 
     def test_add_existing_email(self):
         """Test add method with an existing email."""
-        employee = Employee(**self.employee1_kwargs)
+        employee = Employee(**self.existing_mail_kwargs)
         self.repo.add(employee)
         with pytest.raises(exc.IntegrityError):
             self.repo.session.flush()

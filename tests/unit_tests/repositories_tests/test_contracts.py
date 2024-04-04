@@ -4,6 +4,8 @@ from sqlalchemy import inspect, exc
 from epic_events_crm.models.contracts import Contract
 from epic_events_crm.repositories.contracts import ContractRepo
 
+CREATED_ID = None
+
 
 class TestContractRepo:
     """
@@ -34,6 +36,8 @@ class TestContractRepo:
         assert inspect(contract1).pending
         self.repo.session.commit()
         assert inspect(contract1).persistent
+        global CREATED_ID
+        CREATED_ID = contract1.id
 
     def test_add_non_existing_client(self):
         """Adding a contract with a non-existing client should raise an error."""
@@ -108,7 +112,7 @@ class TestContractRepo:
 
     def test_delete(self):
         """Test that a contract is marked for deletion in the session."""
-        contract = self.repo.get_by_id(7)  # the one created in this test class
+        contract = self.repo.get_by_id(CREATED_ID)  # the one created in this test class
         self.repo.delete(contract)
         self.repo.session.flush()
         assert inspect(contract).deleted
