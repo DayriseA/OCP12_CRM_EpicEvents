@@ -87,6 +87,8 @@ class ClientController:
         # Get client by id or email
         if client_id is not None:
             client = self.repo.get_by_id(client_id)
+            if client is None:
+                raise ValueError("Client not found.")
             # If client id and email are provided, update email (if valid)
             if email is not None:
                 if is_email_valid(email) and not self.repo.get_by_email(email):
@@ -101,7 +103,7 @@ class ClientController:
         # Check if current user is assigned to the client to be updated
         current_user = get_current_user()
         if client.salesperson_id != current_user.id:
-            raise ValueError("You are not assigned to this client.")
+            raise PermissionError("You are not assigned to this client.")
 
         # Update client details
         if fname:

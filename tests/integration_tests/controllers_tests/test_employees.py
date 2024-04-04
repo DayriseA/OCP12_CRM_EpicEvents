@@ -77,7 +77,6 @@ class TestEmployeeController:
         """Test that the create method works as expected with wrong parameters."""
         with pytest.raises(expected):
             self.controller.create(**user_kwargs)
-            self.controller.session.rollback()
 
     def test_update_with_wrong_arguments(self):
         """Test that the expected errors are raised with invalid arguments."""
@@ -104,8 +103,6 @@ class TestEmployeeController:
         # valid identifier but invalid department id
         with pytest.raises(ValueError):
             self.controller.update(email="validemp@test.com", department_id=999)
-
-        self.controller.session.rollback()
 
     def test_update(self):
         """Test that the update method works as expected."""
