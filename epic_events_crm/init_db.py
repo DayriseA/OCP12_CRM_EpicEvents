@@ -82,10 +82,6 @@ config_file_path = os.path.join(dir_path, "config.ini")
 config = configparser.ConfigParser()
 config.read(config_file_path)
 
-# Generate a key for the encryption and decryption
-key = Fernet.generate_key()
-fernet = Fernet(key)
-
 
 @click.group()
 def init():
@@ -137,6 +133,8 @@ def initialize_database(user, host, port):
 
     # Once the users are created, encrypt the passwords and store them in a .env file
     # Encryption operates on bytes and storing in a .env file requires strings
+    key = Fernet.generate_key()  # Generate a key for the encryption and decryption
+    fernet = Fernet(key)
     migrations_pwd_encrypted = fernet.encrypt(migrations_pwd.encode()).decode()
     app_pwd_encrypted = fernet.encrypt(app_pwd.encode()).decode()
     set_key(".env", "MIGRATIONS_PWD", migrations_pwd_encrypted)
@@ -230,6 +228,12 @@ def initialize_test_database(user):
 @init.command(name="jwt-key", short_help="Set the JWT secret key.")
 def set_jwt_secret():
     """Set the JWT_SECRET in the .env file."""
+    # Get the fernet key and use it to declare the fernet object
+    if os.getenv("EECRM_KEY"):
+        key = os.getenv("EECRM_KEY")
+    else:
+        key = view.ask_app_key()
+    fernet = Fernet(key)
     # Prompt for the JWT secret and encrypt it
     plain_jwt_secret = prompt_for_password("Define the JWT secret: ")
     encrypted_jwt_secret = fernet.encrypt(plain_jwt_secret.encode()).decode()
