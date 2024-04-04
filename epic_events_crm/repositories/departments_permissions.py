@@ -27,7 +27,11 @@ class DepartmentRepo:
     def get_all(self) -> List[Department]:
         """Return all departments as a list."""
         try:
-            return self.session.execute(select(Department)).scalars().all()
+            return (
+                self.session.execute(select(Department).order_by(Department.id))
+                .scalars()
+                .all()
+            )
         except Exception as e:
             print(f"Error getting all departments: {e}")
 
