@@ -3,6 +3,7 @@ import os
 import jwt
 from dotenv import load_dotenv, set_key
 from cryptography.fernet import Fernet
+
 from typing import Union, Optional
 
 from epic_events_crm.models.employees import Employee
@@ -11,12 +12,12 @@ from epic_events_crm.views.base import BaseView
 
 
 base_view = BaseView()
-controller = EmployeeRepo()
+repo = EmployeeRepo()
 
 
-def authenticate(email: str, password: str, controller=controller) -> bool:
+def authenticate(email: str, password: str, repo=repo) -> bool:
     """Authenticate an employee by email and password."""
-    employee = controller.get_by_email(email)
+    employee = repo.get_by_email(email)
     if employee is not None:
         return employee.check_password(password)
     return False
@@ -49,13 +50,13 @@ def make_jwt_token(employee: "Employee") -> str:
     return token
 
 
-def log_in(email: str, password: str, controller=controller) -> bool:
+def log_in(email: str, password: str, repo=repo) -> bool:
     """
     After being authenticated, log in an employee. A JWT token is created and
     stored in a .env file.
     """
-    if authenticate(email, password, controller=controller):
-        employee = controller.get_by_email(email)
+    if authenticate(email, password, repo=repo):
+        employee = repo.get_by_email(email)
         token = make_jwt_token(employee)
         set_key(".env", "JWT_TOKEN", token)
         return True
@@ -68,7 +69,7 @@ def valid_token_in_env() -> Union[bool, dict]:
     Return False if the token is invalid, expired or not present.
     If token is valid, return the payload in a dictionary.
     """
-    load_dotenv()
+    load_dotenv(override=True)
     token = os.getenv("JWT_TOKEN")
     if token is not None:
         jwt_secret = get_jwt_secret()
@@ -79,19 +80,19 @@ def valid_token_in_env() -> Union[bool, dict]:
             base_view.display_as("The token has expired.", "warning")
             return False
         except jwt.InvalidSignatureError:
-            print("The token signature is invalid.", "error")
+            base_view.display_as("The token signature is invalid.", "error")
             return False
         except jwt.InvalidTokenError:
-            print("The token is invalid.", "error")
+            base_view.display_as("The token is invalid.", "error")
             return False
     return False
 
 
-def get_current_user() -> Optional[Employee]:
+def get_current_user(repo=repo) -> Optional[Employee]:
     """Return the current user from the JWT token."""
     token = valid_token_in_env()
     if token:
-        return controller.get_by_id(token["uid"])
+        return repo.get_by_id(token["uid"])
     return None
 
 
@@ -99,11 +100,14 @@ def requires_auth(f):
     """Decorator for requiring authentication."""
 
     def wrapper(*args, **kwargs):
+        valid_token = False
         try:
             valid_token = valid_token_in_env()
         except Exception as e:
             base_view.display_as(f"Error: {e}", "error")
         if valid_token:
             return f(*args, **kwargs)
+        else:
+            return None
 
     return wrapper
