@@ -59,7 +59,7 @@ class EmployeeController:
         )
         self.repo.add(employee)
         try:
-            current_user = get_current_user()
+            current_user = get_current_user() or "Unknown user (most likely non CLI)"
             self.session.commit()
             capture_message(f"{current_user} created new {employee}", level="info")
         except exc.SQLAlchemyError as e:
@@ -83,6 +83,8 @@ class EmployeeController:
         # Get employee by id or email
         if employee_id is not None:
             employee = self.repo.get_by_id(employee_id)
+            if employee is None:
+                raise ValueError("Employee not found.")
             # If employee id and email are provided, update email (if valid)
             if email is not None:
                 if is_email_valid(email) and not self.repo.get_by_email(email):
@@ -107,7 +109,7 @@ class EmployeeController:
                 raise ValueError(f"Department id not found. {msg}")
 
         try:
-            current_user = get_current_user()
+            current_user = get_current_user() or "Unknown user (most likely non CLI)"
             self.session.commit()
             capture_message(f"{current_user} updated {employee}", level="info")
         except exc.SQLAlchemyError as e:
