@@ -32,13 +32,16 @@ class EventController:
         attendees_number: int,
         contract_id: int,
         notes: Optional[str] = None,
-    ) -> None:
+    ) -> int:
         """Create an event and add it to the database."""
         # Check if contract exists
         contract_repo = ContractRepo(self.session)
         contract = contract_repo.get_by_id(contract_id)
         if contract is None:
             raise ValueError("Contract not found.")
+        # Check if there is already an event for this contract
+        if contract.event is not None:
+            raise ValueError("An event already exists for this contract.")
         # Convert dates to datetime if in expected format (YYYY-MM-DD HH:MM)
         try:
             start_datetime = datetime.strptime(start_date, "%Y-%m-%d %H:%M")
@@ -69,6 +72,7 @@ class EventController:
         self.repo.add(event)
         try:
             self.session.commit()
+            return event.id
         except Exception as e:
             raise ValueError(f"Error: {e}")
 
@@ -96,7 +100,7 @@ class EventController:
         if employee.department.name == "Support":
             # and if the event is assigned to them
             if employee.id != event.support_person_id:
-                raise ValueError("You can only update events assigned to you.")
+                raise PermissionError("You can only update events assigned to you.")
 
         # Convert dates to datetime if in expected format (YYYY-MM-DD HH:MM)
         if start_date is not None:
@@ -111,8 +115,11 @@ class EventController:
                 event.end_datetime = end_datetime
             except ValueError:
                 raise ValueError("Invalid date format. Use 'YYYY-MM-DD HH:MM'.")
+
         # Check if start date is before end date
         if event.start_datetime >= event.end_datetime:
+            # Revert changes and raise error
+            self.session.rollback()
             raise ValueError("Start date must be before end date.")
         # Update event's details
         if name is not None:
@@ -168,7 +175,5 @@ class EventController:
 
     def get_events_assigned_to_current_user(self) -> Optional[List[Event]]:
         """Return a list of all events assigned to the current user."""
-        from epic_events_crm.authentication import get_current_user
-
         current_user = get_current_user()
         return self.repo.get_events_assigned_to(current_user.id)
