@@ -89,11 +89,11 @@ Where options are:
   + `--phone` / `-p`
   + `--company` / `-c`
 
-  `--email` can be used as an identifier instead of employee's id. Provide both in order to update the email.  
+  `--email` can be used as an identifier instead of client's id. Provide both in order to update the email.  
 
 * *Deleting a Client:*  
 `eecrm delete-client --clientid <client_id>`  
-Here too `--email` can be used instead of `--empid`  
+Here too `--email` can be used instead of `--clientid`  
 
 * *Listing Clients:*  
 `eecrm list-clients [options]`  
@@ -106,7 +106,7 @@ With `--mine` (or `-m`) list only clients assigned to current employee.
 `eecrm add-contract <client_id> <due_amount>`
 
 * *Updating a Contract:*  
-`eecrm update-contract --contract_id <contract_id> [options]`  
+`eecrm update-contract <contract_id> [options]`  
 Where options are:
   + `--amount` / `-a`
   + `--paid`/ `-p`
@@ -128,11 +128,14 @@ Where options are:
 
 * *Adding a Event:*  
 `eecrm add-event <contract_id> <event_name> [options]`  
-The only real option is `--notes` / `txt` and it allows to add some notes to the event. (_All the needed info will be prompted but you can check the list of fields you can specify with `--help`_)
+The only real option is `--notes` / `-txt` and it allows to add some notes to the event. (_All the needed info will be prompted but you can check the list of fields you can specify with `--help`_)
 
 * *Updating a Event:*  
 `eecrm update-event <event_id> [options]`  
-Similar to `add-event` options, use `--help` to seel all fields available. Flag `append` / `-ap` allows you to add some notes instead of replacing it.
+Managers can assign the person from the support team with `--support_id` / `-sid` option.  
+Flag `append` / `-ap` allows you to add some notes instead of replacing it.  
+Otherwise similar to `add-event` options, use `--help` to see all fields available. 
+
 
 * *Listing Events:*  
 `eecrm list-events [options]`  
