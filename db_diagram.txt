@@ -1,0 +1,3 @@
+PDF version in the deliverables.
+Online version can be viewed at:
+https://dbdiagram.io/d/OCP12-EpicEvents-CRM-65ccee6bac844320ae2590cc
